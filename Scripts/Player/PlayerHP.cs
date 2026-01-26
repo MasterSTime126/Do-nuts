@@ -13,6 +13,11 @@ public class PlayerHP : MonoBehaviour
 
     private GameObject donut;
 
+    public void UpdateTheMaskState(int value)
+    {
+        maskState = value;
+    }
+
     private void Update()
     {
         inputActions = GetComponent<PlayerInput>().actions;
@@ -20,11 +25,13 @@ public class PlayerHP : MonoBehaviour
 
         interactAction.performed += ctx =>
         {
+            Debug.Log("Interact pressed");
             if(donut != null)
             {
                 EatDonut();
                 Destroy(donut);
                 donut = null;
+                Debug.Log("Player HP: " + playerHP);
             }
         };
     }
@@ -78,6 +85,16 @@ public class PlayerHP : MonoBehaviour
         if(collider.CompareTag("Donut"))
         {
             donut = collider.gameObject;
+            Debug.Log("Donut in range");
+        }
+    }
+
+    private void OnTriggerExit2D(Collider2D collision)
+    {
+        if(donut == collision.gameObject)
+        {
+            donut = null;
+            Debug.Log("Donut out of range");
         }
     }
 }
