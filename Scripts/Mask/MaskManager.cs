@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public class MaskManager : MonoBehaviour
@@ -12,6 +13,11 @@ public class MaskManager : MonoBehaviour
         return maskState;
     }
 
+    private void Start()
+    {
+        StartCoroutine(MaskEnumerator());
+    }
+
     private void ChangeTheMask()
     {
         // Example check before changing the mask state (adjust condition as needed)
@@ -19,6 +25,15 @@ public class MaskManager : MonoBehaviour
         {
             maskState++;
             playerHP.UpdateTheMaskState(maskState);
+        }
+    }
+
+    private IEnumerator MaskEnumerator()
+    {
+        while (maskState < 5)
+        {
+            yield return new WaitForSeconds(15f);
+            ChangeTheMask();
         }
     }
 }
