@@ -17,9 +17,11 @@ public class PlayerMovement : MonoBehaviour
    private void OnEnable()
    {
        inputActions = GetComponent<PlayerInput>().actions;
+       //Just in case, you find these actions in InputSystem_Actions file in Assets.
        playerActionMap = inputActions.FindActionMap("Player");
        moveAction = playerActionMap.FindAction("Move");
        sprintAction = playerActionMap.FindAction("Sprint");
+
        moveAction.performed += ctx => movementInput = ctx.ReadValue<Vector2>();
        moveAction.canceled += ctx => movementInput = Vector2.zero;
        playerActionMap.Enable();

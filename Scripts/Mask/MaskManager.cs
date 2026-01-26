@@ -8,11 +8,6 @@ public class MaskManager : MonoBehaviour
 
     private int maskState = 0;
 
-    public int GetMaskState()
-    {
-        return maskState;
-    }
-
     private void Start()
     {
         StartCoroutine(MaskEnumerator());
@@ -28,6 +23,11 @@ public class MaskManager : MonoBehaviour
         }
     }
 
+    public int GetMaskState()
+    {
+        return maskState;
+    }
+    
     private IEnumerator MaskEnumerator()
     {
         while (maskState < 5)

@@ -38,45 +38,25 @@ public class PlayerHP : MonoBehaviour
 
     public void EatDonut()
     {
-        if(maskState == 0)
+        switch (maskState)
         {
-            playerHP += 10f;
-            if(playerHP > maxPlayerHP)
-            {
-                playerHP = maxPlayerHP;
-            }
-        }
-        else if(maskState == 1)
-        {
-            playerHP -= 10f;
-            if(playerHP < 0)
-            {
-                playerHP = 0;
-            }
-        }
-        else if(maskState == 2)
-        {
-            playerHP -= 20f;
-            if(playerHP < 0)
-            {
-                playerHP = 0;
-            }
-        }
-        else if(maskState == 3)
-        {
-            playerHP -= 30f;
-            if(playerHP < 0)
-            {
-                playerHP = 0;
-            }
-        }
-        else if(maskState == 4)
-        {
-            playerHP -= 40f;
-            if(playerHP < 0)
-            {
-                playerHP = 0;
-            }
+            case 0:
+                playerHP = Mathf.Clamp(playerHP + 10f, 0f, maxPlayerHP);
+                break;
+            case 1:
+                playerHP = Mathf.Clamp(playerHP - 10f, 0f, maxPlayerHP);
+                break;
+            case 2:
+                playerHP = Mathf.Clamp(playerHP - 20f, 0f, maxPlayerHP);
+                break;
+            case 3:
+                playerHP = Mathf.Clamp(playerHP - 30f, 0f, maxPlayerHP);
+                break;
+            case 4:
+                playerHP = Mathf.Clamp(playerHP - 40f, 0f, maxPlayerHP);
+                break;
+            default:
+                break;
         }
     }
 
