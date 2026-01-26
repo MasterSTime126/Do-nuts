@@ -7,6 +7,7 @@ public class PlayerMovement : MonoBehaviour
     private float moveSpeed = 5f;
     private float sprintSpeed = 7.5f;
 
+
    private Vector2 movementInput;
    private InputActionAsset inputActions;
    private InputActionMap playerActionMap;
@@ -30,4 +31,5 @@ public class PlayerMovement : MonoBehaviour
        Vector3 move = new Vector3(movementInput.x, 0, movementInput.y) * currentSpeed * Time.deltaTime;
        transform.Translate(move);
    }
+
 }
