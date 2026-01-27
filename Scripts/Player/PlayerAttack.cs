@@ -39,6 +39,7 @@ public class PlayerAttack : MonoBehaviour
         {
             attackCooldown -= attackCooldown > 0 ? Time.deltaTime : 0;
         }
+        //CHECKPOINT
         else
         {
             attackCooldown = 1f;

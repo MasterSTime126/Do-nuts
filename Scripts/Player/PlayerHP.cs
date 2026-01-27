@@ -8,6 +8,8 @@ public class PlayerHP : MonoBehaviour
 
     private int maskState = 0;
 
+    [SerializeField] MaskManager maskManager;
+
     private InputActionAsset inputActions;
     private InputAction interactAction;
 
@@ -79,7 +81,7 @@ public class PlayerHP : MonoBehaviour
     }
     private void OnCollisionEnter(Collision collision)
     {
-        if(collision.gameObject.CompareTag("Donut"))
+        if(collision.gameObject.CompareTag("Donut") && maskManager.GetMaskState() != 1)
         {
             donut = collision.gameObject;
             Debug.Log("Donut collided" + playerHP);
