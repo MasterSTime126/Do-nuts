@@ -82,8 +82,9 @@ public class PlayerHP : MonoBehaviour
         if(collision.gameObject.CompareTag("Donut"))
         {
             donut = collision.gameObject;
-            Debug.Log("Donut collided");
+            Debug.Log("Donut collided" + playerHP);
             EatDonut();
+            Destroy(donut);
         }
     }
 }

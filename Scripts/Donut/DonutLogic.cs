@@ -26,6 +26,7 @@ public class DonutLogic : MonoBehaviour
             case 1:
                 if (player != null)
                 {
+                    GetComponent<Collider>().isTrigger = false;
                     Vector3 moveTo = player.transform.position;
                     moveTo.y = 0f;
                     transform.position = Vector3.MoveTowards(transform.position, moveTo, speed * Time.deltaTime);
@@ -43,6 +44,7 @@ public class DonutLogic : MonoBehaviour
             case 3:
                 if (player != null)
                 {
+                    GetComponent<Collider>().isTrigger = false;
                     if (Vector3.Distance(transform.position, player.transform.position) > 3f)
                     {
                         Vector3 moveTo = player.transform.position;
@@ -58,6 +60,7 @@ public class DonutLogic : MonoBehaviour
             case 4:
                 if (player != null)
                 {
+                    GetComponent<Collider>().isTrigger = false;
                     // IDK what happens here
                 }
                 break;
