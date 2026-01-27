@@ -23,7 +23,7 @@ public class DonutSpawner : MonoBehaviour
 
     private void SpawnDonut()
     {
-        Vector3 spawnPosition = new Vector3(Random.Range(-8f, 8f), 0f, Random.Range(-8f, 8f));
+        Vector3 spawnPosition = new Vector3(Random.Range(-6.5f, 6.5f), 0f, Random.Range(-6.5f, 6.5f));
         GameObject donut = Instantiate(donutPrefab, spawnPosition, Quaternion.identity);
         donut.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
     }

@@ -60,7 +60,7 @@ public class PlayerHP : MonoBehaviour
         }
     }
 
-    private void OnTriggerEnter2D(Collider2D collider)
+    private void OnTriggerEnter(Collider collider)
     {
         if(collider.CompareTag("Donut"))
         {
@@ -69,12 +69,21 @@ public class PlayerHP : MonoBehaviour
         }
     }
 
-    private void OnTriggerExit2D(Collider2D collision)
+    private void OnTriggerExit(Collider collision)
     {
         if(donut == collision.gameObject)
         {
             donut = null;
             Debug.Log("Donut out of range");
+        }
+    }
+    private void OnCollisionEnter(Collision collision)
+    {
+        if(collision.gameObject.CompareTag("Donut"))
+        {
+            donut = collision.gameObject;
+            Debug.Log("Donut collided");
+            EatDonut();
         }
     }
 }

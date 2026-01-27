@@ -27,10 +27,10 @@ public class PlayerMovement : MonoBehaviour
        playerActionMap.Enable();
    }
 
-   private void Update()
+   private void FixedUpdate()
    {
        currentSpeed = sprintAction.IsPressed() ? sprintSpeed : moveSpeed;
-       Vector3 move = new Vector3(movementInput.x, 0, movementInput.y) * currentSpeed * Time.deltaTime;
+       Vector3 move = new Vector3(movementInput.x, 0, movementInput.y) * currentSpeed * Time.fixedDeltaTime;
        transform.Translate(move);
    }
 
