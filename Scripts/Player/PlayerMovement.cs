@@ -3,16 +3,12 @@ using UnityEngine.InputSystem;
 
 public class PlayerMovement : MonoBehaviour
 {
-    private float currentSpeed = 5f;
-    private float moveSpeed = 5f;
-    private float sprintSpeed = 7.5f;
+    [SerializeField] private float moveSpeed = 7.5f;
 
-
-   private Vector2 movementInput;
-   private InputActionAsset inputActions;
-   private InputActionMap playerActionMap;
-   private InputAction moveAction;
-   private InputAction sprintAction;
+    private Vector2 movementInput;
+    private InputActionAsset inputActions;
+    private InputActionMap playerActionMap;
+    private InputAction moveAction;
 
    private void OnEnable()
    {
@@ -20,7 +16,6 @@ public class PlayerMovement : MonoBehaviour
        //Just in case, you find these actions in InputSystem_Actions file in Assets.
        playerActionMap = inputActions.FindActionMap("Player");
        moveAction = playerActionMap.FindAction("Move");
-       sprintAction = playerActionMap.FindAction("Sprint");
 
        moveAction.performed += ctx => movementInput = ctx.ReadValue<Vector2>();
        moveAction.canceled += ctx => movementInput = Vector2.zero;
@@ -29,8 +24,7 @@ public class PlayerMovement : MonoBehaviour
 
    private void FixedUpdate()
    {
-       currentSpeed = sprintAction.IsPressed() ? sprintSpeed : moveSpeed;
-       Vector3 move = new Vector3(movementInput.x, 0, movementInput.y) * currentSpeed * Time.fixedDeltaTime;
+       Vector3 move = new Vector3(movementInput.x, 0, movementInput.y) * moveSpeed * Time.fixedDeltaTime;
        transform.Translate(move);
    }
 

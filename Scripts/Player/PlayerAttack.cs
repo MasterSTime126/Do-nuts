@@ -1,57 +1,98 @@
 using System.Collections.Generic;
-using System.Xml.Serialization;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class PlayerAttack : MonoBehaviour
 {
-    [SerializeField] MaskManager maskManager;
+    [SerializeField] private float attackCooldown = 0.75f;
 
-    private float attackTime = 0.75f;
-    private float attackCooldown = 0f;
-
+    private float currentCooldown = 0f;
     private InputActionAsset inputActions;
     private InputAction attackAction;
-    private List<GameObject> gameObjects = new List<GameObject>();
+    private List<GameObject> donutsInRange = new List<GameObject>();
+
+    private MaskManager maskManager;
 
     private void Awake()
     {
         inputActions = GetComponent<PlayerInput>().actions;
         attackAction = inputActions.FindAction("Attack");
+    }
 
-        attackAction.performed += ctx =>
-        {
-            if(attackCooldown > 0)
-            {
-                return;
-            }
-            foreach (GameObject obj in gameObjects)
-            {
-                Destroy(obj);
-            }
-            // Implement attack logic here
-        };
+    private void OnEnable()
+    {
+        attackAction.performed += OnAttackPerformed;
+        attackAction.Enable();
+    }
+
+    private void OnDisable()
+    {
+        attackAction.performed -= OnAttackPerformed;
+        attackAction.Disable();
+    }
+
+    private void Start()
+    {
+        maskManager = MaskManager.Instance;
     }
 
     private void Update()
     {
-        if(maskManager.GetMaskState() == 2)
+        // Only allow attacking in Anger mask (state 3)
+        if (maskManager == null) return;
+
+        if (maskManager.GetMaskState() == MaskManager.MaskState.Anger)
         {
-            attackCooldown -= attackCooldown > 0 ? Time.deltaTime : 0;
+            if (currentCooldown > 0)
+            {
+                currentCooldown -= Time.deltaTime;
+            }
         }
-        //CHECKPOINT
         else
         {
-            attackCooldown = 1f;
+            // Can't attack in other states
+            currentCooldown = attackCooldown;
         }
+
+        // Clean up destroyed objects from list
+        donutsInRange.RemoveAll(obj => obj == null);
+    }
+
+    private void OnAttackPerformed(InputAction.CallbackContext ctx)
+    {
+        if (maskManager == null) return;
+
+        // Only attack in Anger state
+        if (maskManager.GetMaskState() != MaskManager.MaskState.Anger) return;
+
+        if (currentCooldown > 0) return;
+
+        // Attack all donuts in range
+        foreach (GameObject donut in donutsInRange.ToArray())
+        {
+            if (donut != null)
+            {
+                DonutLogic logic = donut.GetComponent<DonutLogic>();
+                if (logic != null)
+                {
+                    logic.BeforeDestroy();
+                    maskManager.OnDonutKilled();
+                }
+            }
+        }
+
+        donutsInRange.Clear();
+        currentCooldown = attackCooldown;
     }
 
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Donut"))
         {
-            Debug.Log("Enemy detected");
-            gameObjects.Add(other.gameObject);
+            if (!donutsInRange.Contains(other.gameObject))
+            {
+                donutsInRange.Add(other.gameObject);
+            }
         }
     }
 
@@ -59,8 +100,7 @@ public class PlayerAttack : MonoBehaviour
     {
         if (other.CompareTag("Donut"))
         {
-            Debug.Log("Enemy exited");
-            gameObjects.Remove(other.gameObject);
+            donutsInRange.Remove(other.gameObject);
         }
     }
 }

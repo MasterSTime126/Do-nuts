@@ -81,7 +81,7 @@ public class PlayerHP : MonoBehaviour
     }
     private void OnCollisionEnter(Collision collision)
     {
-        if(collision.gameObject.CompareTag("Donut") && maskManager.GetMaskState() != 1)
+        if(collision.gameObject.CompareTag("Donut") && (int)maskManager.GetMaskState() != 1)
         {
             donut = collision.gameObject;
             Debug.Log("Donut collided" + playerHP);
