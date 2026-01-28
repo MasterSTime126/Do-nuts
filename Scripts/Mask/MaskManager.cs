@@ -205,7 +205,7 @@ public class MaskManager : MonoBehaviour
             {
                 // Load next level or reset current scene
                 ResetLevelProgress();
-                currentHP = maxHP; // Full heal between levels
+                currentHP = maxHP * 0.25f; // Partial heal between levels
                 OnHPChanged?.Invoke(currentHP, maxHP);
             }
         }
