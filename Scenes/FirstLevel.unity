@@ -355,7 +355,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4337ea05d72d1e1ebb0082dafd1bea76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maskPrefab: {fileID: 0}
+  maskPrefab: {fileID: 3222449161323165606, guid: 7a3a0514f0ff5a1629b8eadd04795709, type: 3}
   HPText: {fileID: 1950457453}
   maxHP: 100
   maskSpawnPositions:
