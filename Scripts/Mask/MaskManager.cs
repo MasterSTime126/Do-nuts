@@ -1,10 +1,12 @@
 using System;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class MaskManager : MonoBehaviour
 {
     public static MaskManager Instance { get; private set; }
+    [SerializeField] private GameObject maskPrefab;
 
     public enum MaskState
     {
@@ -15,6 +17,9 @@ public class MaskManager : MonoBehaviour
         Disgust = 4,
         TheEnd = 5
     }
+
+    [Header("UI")]
+    [SerializeField] private TMP_Text HPText;
 
     [Header("Player Stats")]
     [SerializeField] private float maxHP = 100f;
@@ -27,6 +32,8 @@ public class MaskManager : MonoBehaviour
     private int tracesCleared = 0;
     private float survivalTimer = 0f;
     private float totalPlayTime = 0f;
+
+    [SerializeField] private Vector3[] maskSpawnPositions = new Vector3[5];
 
     [Header("Level Requirements")]
     private const int HAPPINESS_DONUTS_REQUIRED = 10;
@@ -80,6 +87,7 @@ public class MaskManager : MonoBehaviour
 
     private void Update()
     {
+        HPText.text = $"HP: {Mathf.RoundToInt(currentHP)} / {Mathf.RoundToInt(maxHP)}";
         totalPlayTime += Time.deltaTime;
         ProcessStatusEffects();
 
@@ -142,6 +150,7 @@ public class MaskManager : MonoBehaviour
         donutsEaten++;
         Heal(10f);
         OnProgressChanged?.Invoke(donutsEaten);
+        Debug.Log("Donut eaten: " + donutsEaten);
 
         if (donutsEaten >= HAPPINESS_DONUTS_REQUIRED && !maskSpawned)
         {
@@ -216,10 +225,16 @@ public class MaskManager : MonoBehaviour
         maskSpawned = true;
         // Find and activate the mask object in the scene
         GameObject mask = GameObject.FindGameObjectWithTag("Mask");
+        
         if (mask != null)
         {
+            Debug.Log("Mask spawned!");
             mask.SetActive(true);
+            return;
         }
+        Debug.LogWarning("Mask object not found in scene!");
+        mask = Instantiate(maskPrefab, maskSpawnPositions[(int)currentMask], Quaternion.identity);
+        mask.SetActive(true);
     }
 
     private void ResetLevelProgress()

@@ -15,7 +15,7 @@ public class MaskPickup : MonoBehaviour
         maskManager = MaskManager.Instance;
         
         // Start inactive, MaskManager will activate when conditions are met
-        gameObject.SetActive(false);
+        //gameObject.SetActive(false);
     }
 
     private void Update()
