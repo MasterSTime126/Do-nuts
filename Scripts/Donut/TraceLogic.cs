@@ -17,6 +17,8 @@ public class TraceLogic : MonoBehaviour
     {
         maskManager = MaskManager.Instance;
         if (spriteRenderer == null) spriteRenderer = GetComponent<SpriteRenderer>();
+
+        transform.rotation = Quaternion.Euler(-90f, 0f, 0f);
     }
 
     private void OnTriggerEnter(Collider other)

@@ -2,6 +2,7 @@ using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class MaskManager : MonoBehaviour
 {
@@ -63,7 +64,7 @@ public class MaskManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
 
         SceneManager.sceneLoaded += OnSceneLoaded;
-        currentHP = maxHP;
+        currentHP = maxHP*0.25f;
     }
 
     private void OnDestroy()
@@ -106,7 +107,7 @@ public class MaskManager : MonoBehaviour
                 }
                 break;
 
-            case MaskState.Fear:
+            case MaskState.Fear: 
                 // No healing in fear level
                 break;
 
@@ -201,6 +202,7 @@ public class MaskManager : MonoBehaviour
 
     private void AdvanceToNextMask()
     {
+        maskSpawned = false;
         if (currentMask < MaskState.TheEnd)
         {
             currentMask++;
@@ -214,9 +216,13 @@ public class MaskManager : MonoBehaviour
             {
                 // Load next level or reset current scene
                 ResetLevelProgress();
-                currentHP = maxHP * 0.25f; // Partial heal between levels
                 OnHPChanged?.Invoke(currentHP, maxHP);
             }
+        }
+        if (MaskState.Fear == currentMask)
+        {
+            Debug.Log("Spawning mask in Fear level");
+            SpawnMask();
         }
     }
 
@@ -226,13 +232,8 @@ public class MaskManager : MonoBehaviour
         // Find and activate the mask object in the scene
         GameObject mask = GameObject.FindGameObjectWithTag("Mask");
         
-        if (mask != null)
-        {
-            Debug.Log("Mask spawned!");
-            mask.SetActive(true);
-            return;
-        }
-        Debug.LogWarning("Mask object not found in scene!");
+        //Debug.LogWarning("Mask object not found in scene!");
+        Debug.Log("Spawning mask for " + currentMask.ToString());
         mask = Instantiate(maskPrefab, maskSpawnPositions[(int)currentMask], Quaternion.identity);
         mask.SetActive(true);
     }
@@ -252,7 +253,7 @@ public class MaskManager : MonoBehaviour
     {
         Debug.Log("Player died!");
         // Reset level or show game over
-        currentHP = maxHP;
+        currentHP = maxHP*0.25f;
         ResetLevelProgress();
         OnHPChanged?.Invoke(currentHP, maxHP);
         // Optionally reload the current scene

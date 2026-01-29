@@ -9,6 +9,14 @@ public class MaskPickup : MonoBehaviour
     private Vector3 startPosition;
     private MaskManager maskManager;
 
+    private void OnDestroy()
+    {
+        if (maskManager != null)
+        {
+            Debug.Log("MaskPickup destroyed " + maskManager.GetMaskState());
+        }
+    }
+
     private void Start()
     {
         startPosition = transform.position;

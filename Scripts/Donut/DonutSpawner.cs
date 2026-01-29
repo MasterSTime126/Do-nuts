@@ -55,7 +55,9 @@ public class DonutSpawner : MonoBehaviour
             // Don't spawn during Fear (mask is already placed) or TheEnd
             if (state == MaskManager.MaskState.Fear || state == MaskManager.MaskState.TheEnd)
             {
-                yield return new WaitForSeconds(1f);
+                float interval = Mathf.Max(1f, baseSpawnInterval - 0.5f * (int)state);
+                SpawnDonut();
+                yield return new WaitForSeconds(interval);
                 continue;
             }
 

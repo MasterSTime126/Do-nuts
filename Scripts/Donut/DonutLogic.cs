@@ -4,7 +4,7 @@ public class DonutLogic : MonoBehaviour
 {
     [Header("Movement Settings")]
     [SerializeField] private float moveSpeed = 2f;
-    [SerializeField] private float stopDistance = 1.5f;
+    [SerializeField] private float stopDistance = 3f;
 
     [Header("Damage Settings")]
     [SerializeField] private float sadnessDamagePerSecond = 1f;
@@ -25,6 +25,9 @@ public class DonutLogic : MonoBehaviour
     private bool isNearPlayer = false;
     private bool isDestroying = false;
 
+    private MaskManager.MaskState currentMaskState;
+    private MaskManager.MaskState newMaskState;
+
     private void Start()
     {
         maskManager = MaskManager.Instance;
@@ -38,15 +41,29 @@ public class DonutLogic : MonoBehaviour
         {
             explosionTimer = explosionTime;
         }
+
+        if (maskManager != null && maskManager.GetMaskState() != MaskManager.MaskState.Happiness)
+        {
+            transform.rotation = Quaternion.Euler(0f, 0f, 0f);
+            transform.position = new Vector3(transform.position.x, 0.5f, transform.position.z);
+        }
+
+        moveSpeed = Random.Range(moveSpeed, moveSpeed * 2f);
+
+        currentMaskState = maskManager.GetMaskState();
     }
 
     private void Update()
     {
         if (maskManager == null || player == null || isDestroying) return;
 
-        MaskManager.MaskState currentMask = maskManager.GetMaskState();
+        newMaskState = maskManager.GetMaskState();
+        if(newMaskState != currentMaskState){
+            Debug.Log("Donut destroyed due to mask state change");
+            Destroy(gameObject);
+        }
 
-        switch (currentMask)
+        switch (currentMaskState)
         {
             case MaskManager.MaskState.Happiness:
                 BehaviorHappiness();
@@ -140,14 +157,14 @@ public class DonutLogic : MonoBehaviour
     private void MoveTowards(Vector3 target)
     {
         Vector3 direction = (target - transform.position).normalized;
-        direction.y = 0f;
+        direction.y = 0;
         transform.position += direction * moveSpeed * Time.deltaTime;
     }
 
     private void MoveAwayFrom(Vector3 target)
     {
         Vector3 direction = (transform.position - target).normalized;
-        direction.y = 0f;
+        direction.y = 0;
         transform.position += direction * moveSpeed * Time.deltaTime;
     }
     #endregion

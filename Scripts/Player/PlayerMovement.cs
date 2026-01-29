@@ -10,6 +10,16 @@ public class PlayerMovement : MonoBehaviour
     private InputActionMap playerActionMap;
     private InputAction moveAction;
 
+    // Movement pause for animations
+    private bool isMovementPaused = false;
+    private float pauseTimer = 0f;
+
+    public void PauseMovement(float duration)
+    {
+        isMovementPaused = true;
+        pauseTimer = duration;
+    }
+
    private void OnEnable()
    {
        inputActions = GetComponent<PlayerInput>().actions;
@@ -22,8 +32,22 @@ public class PlayerMovement : MonoBehaviour
        playerActionMap.Enable();
    }
 
+   private void Update()
+   {
+       if (pauseTimer > 0)
+       {
+           pauseTimer -= Time.deltaTime;
+           if (pauseTimer <= 0)
+           {
+               isMovementPaused = false;
+           }
+       }
+   }
+
    private void FixedUpdate()
    {
+       if (isMovementPaused) return;
+       
        Vector3 move = new Vector3(movementInput.x, 0, movementInput.y) * moveSpeed * Time.fixedDeltaTime;
        transform.Translate(move);
    }
