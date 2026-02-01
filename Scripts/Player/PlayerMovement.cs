@@ -14,6 +14,10 @@ public class PlayerMovement : MonoBehaviour
     private bool isMovementPaused = false;
     private float pauseTimer = 0f;
 
+    // Reference to animator
+    private PlayerAnimator playerAnimator;
+    private PlayerAudio playerAudio;
+
     public void PauseMovement(float duration)
     {
         isMovementPaused = true;
@@ -32,6 +36,12 @@ public class PlayerMovement : MonoBehaviour
        playerActionMap.Enable();
    }
 
+   private void Start()
+   {
+       playerAnimator = GetComponentInChildren<PlayerAnimator>();
+       playerAudio = GetComponent<PlayerAudio>();
+   }
+
    private void Update()
    {
        if (pauseTimer > 0)
@@ -41,6 +51,26 @@ public class PlayerMovement : MonoBehaviour
            {
                isMovementPaused = false;
            }
+       }
+
+       // Update animator walking state
+       bool isMoving = movementInput.sqrMagnitude > 0.01f && !isMovementPaused;
+       
+       if (playerAnimator != null)
+       {
+           playerAnimator.SetWalking(isMoving);
+           
+           // Flip sprite based on horizontal movement
+           if (Mathf.Abs(movementInput.x) > 0.01f)
+           {
+               playerAnimator.SetFacingDirection(movementInput.x);
+           }
+       }
+
+       // Update audio walking state
+       if (playerAudio != null)
+       {
+           playerAudio.SetWalking(isMoving);
        }
    }
 

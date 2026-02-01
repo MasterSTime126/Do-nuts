@@ -57,9 +57,9 @@ Material:
     - _Dissolve: 1
     - _DissolvePattern: 5.35
     - _OutlineThickness: 0.149
-    - _SpiralStrength: 16.2
+    - _SpiralStrength: 25
     - _Vertical: 0
     m_Colors:
-    - _OutlineColor: {r: 0.75535095, g: 0, b: 0.4263602, a: 0}
+    - _OutlineColor: {r: 1, g: 1, b: 1, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

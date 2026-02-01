@@ -26,15 +26,71 @@ public class DonutSpawner : MonoBehaviour
     [Header("Anger / Disgust Overrides")]
     [Tooltip("If filled, donuts will spawn at one of these positions when MaskState is Anger.")]
     [SerializeField] private Vector3[] angerSpawnPositions = new Vector3[0];
+    
+    [Header("Sadness Overrides")]
+    [Tooltip("If filled, donuts will spawn at one of these positions when MaskState is Sadness.")]
+    [SerializeField] private Vector3[] sadnessSpawnPositions = new Vector3[0];
+    
+    [Header("Fear Overrides")]
+    [Tooltip("If filled, donuts will spawn at one of these positions when MaskState is Fear.")]
+    [SerializeField] private Vector3[] fearSpawnPositions = new Vector3[0];
+    
+    [Header("Disgust Overrides")]
+    [Tooltip("If filled, donuts will spawn at one of these positions when MaskState is Disgust.")]
+    [SerializeField] private Vector3[] disgustSpawnPositions = new Vector3[0];
 
     private MaskManager maskManager;
     private Coroutine spawnCoroutine;
+    private bool isGameOver = false;
 
     private void Start()
     {
         maskManager = MaskManager.Instance;
+        
+        // Subscribe to game end events
+        if (maskManager != null)
+        {
+            maskManager.OnGameEnd += OnGameEnd;
+            maskManager.OnGameLost += OnGameLost;
+        }
+        
         UpdateSpawnMode();
         spawnCoroutine = StartCoroutine(SpawnDonutsCoroutine());
+    }
+
+    private void OnDestroy()
+    {
+        // Unsubscribe from events
+        if (maskManager != null)
+        {
+            maskManager.OnGameEnd -= OnGameEnd;
+            maskManager.OnGameLost -= OnGameLost;
+        }
+    }
+
+    private void OnGameEnd(float totalTime)
+    {
+        Debug.Log("DonutSpawner: Game won, stopping spawning");
+        isGameOver = true;
+        StopSpawning();
+        DestroyAllDonuts();
+    }
+
+    private void OnGameLost()
+    {
+        Debug.Log("DonutSpawner: Game lost, stopping spawning");
+        isGameOver = true;
+        StopSpawning();
+        DestroyAllDonuts();
+    }
+
+    private void DestroyAllDonuts()
+    {
+        GameObject[] donuts = GameObject.FindGameObjectsWithTag("Donut");
+        foreach (GameObject donut in donuts)
+        {
+            Destroy(donut);
+        }
     }
 
     private void UpdateSpawnMode()
@@ -103,6 +159,18 @@ public class DonutSpawner : MonoBehaviour
 
         MaskManager.MaskState state = maskManager.GetMaskState();
 
+        // Sadness: if override positions provided, pick one of them
+        if (state == MaskManager.MaskState.Sadness && sadnessSpawnPositions != null && sadnessSpawnPositions.Length > 0)
+        {
+            return sadnessSpawnPositions[Random.Range(0, sadnessSpawnPositions.Length)];
+        }
+
+        // Fear: if override positions provided, pick one of them
+        if (state == MaskManager.MaskState.Fear && fearSpawnPositions != null && fearSpawnPositions.Length > 0)
+        {
+            return fearSpawnPositions[Random.Range(0, fearSpawnPositions.Length)];
+        }
+
         // Anger: if override positions provided, pick one of them
         if (state == MaskManager.MaskState.Anger && angerSpawnPositions != null && angerSpawnPositions.Length > 0)
         {
@@ -110,9 +178,9 @@ public class DonutSpawner : MonoBehaviour
         }
 
         // Disgust: if override positions provided, pick one of them
-        if (state == MaskManager.MaskState.Disgust && angerSpawnPositions != null && angerSpawnPositions.Length > 0)
+        if (state == MaskManager.MaskState.Disgust && disgustSpawnPositions != null && disgustSpawnPositions.Length > 0)
         {
-            return angerSpawnPositions[Random.Range(0, angerSpawnPositions.Length)];
+            return disgustSpawnPositions[Random.Range(0, disgustSpawnPositions.Length)];
         }
 
         // Default behavior based on spawnMode

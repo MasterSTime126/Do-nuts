@@ -7,6 +7,8 @@ public class PlayerAttack : MonoBehaviour
     [SerializeField] private float attackCooldown = 0.75f;
     [SerializeField] private float attackPauseDuration = 0.3f;  // Pause for attack animation
     [SerializeField] private float cleanPauseDuration = 0.6f;   // Pause for cleaning animation
+    [SerializeField] private float attackRange = 2f;  // Range for attack detection
+    [SerializeField] private LayerMask donutLayerMask;  // Optional: set to Donut layer for better performance
 
     private float currentCooldown = 0f;
     private InputActionAsset inputActions;
@@ -17,6 +19,8 @@ public class PlayerAttack : MonoBehaviour
 
     private MaskManager maskManager;
     private PlayerMovement playerMovement;
+    private PlayerAnimator playerAnimator;
+    private PlayerAudio playerAudio;
 
     private void Awake()
     {
@@ -24,6 +28,8 @@ public class PlayerAttack : MonoBehaviour
         attackAction = inputActions.FindAction("Attack");
         interactAction = inputActions.FindAction("Interact");  // AIUANAT - Get interact action
         playerMovement = GetComponent<PlayerMovement>();
+        playerAnimator = GetComponentInChildren<PlayerAnimator>();
+        playerAudio = GetComponent<PlayerAudio>();
     }
 
     private void OnEnable()
@@ -82,25 +88,46 @@ public class PlayerAttack : MonoBehaviour
 
         if (currentCooldown > 0) return;
 
+        Debug.Log($"PlayerAttack: Attack performed! Donuts in range: {donutsInRange.Count}");
+
         // Pause player movement for attack animation
         if (playerMovement != null)
         {
             playerMovement.PauseMovement(attackPauseDuration);
         }
-
-        // Attack all donuts in range
-        foreach (GameObject donut in donutsInRange.ToArray())
+        
+        // Trigger attack animation
+        if (playerAnimator != null)
         {
-            if (donut != null)
+            playerAnimator.TriggerAttack();
+        }
+
+        // Play attack sound
+        if (playerAudio != null)
+        {
+            playerAudio.PlayAttack();
+        }
+
+        // Find all donuts in attack range using OverlapSphere
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position, attackRange);
+        int donutsHit = 0;
+        
+        foreach (Collider hitCollider in hitColliders)
+        {
+            if (hitCollider.CompareTag("Donut"))
             {
-                DonutLogic logic = donut.GetComponent<DonutLogic>();
+                Debug.Log($"PlayerAttack: Found donut in range: {hitCollider.gameObject.name}");
+                DonutLogic logic = hitCollider.GetComponent<DonutLogic>();
                 if (logic != null)
                 {
                     logic.BeforeDestroy();
                     maskManager.OnDonutKilled();
+                    donutsHit++;
                 }
             }
         }
+        
+        Debug.Log($"PlayerAttack: Hit {donutsHit} donuts");
 
         donutsInRange.Clear();
         currentCooldown = attackCooldown;
@@ -124,6 +151,18 @@ public class PlayerAttack : MonoBehaviour
         {
             playerMovement.PauseMovement(cleanPauseDuration);
         }
+        
+        // Trigger clean animation
+        if (playerAnimator != null)
+        {
+            playerAnimator.TriggerClean();
+        }
+
+        // Play clean sound
+        if (playerAudio != null)
+        {
+            playerAudio.PlayClean();
+        }
 
         // Clean the first trace in range
         GameObject trace = tracesInRange[0];
@@ -143,6 +182,7 @@ public class PlayerAttack : MonoBehaviour
     {
         if (other.CompareTag("Donut"))
         {
+            Debug.Log($"PlayerAttack: Donut entered range: {other.gameObject.name}");
             if (!donutsInRange.Contains(other.gameObject))
             {
                 donutsInRange.Add(other.gameObject);
@@ -151,7 +191,7 @@ public class PlayerAttack : MonoBehaviour
         if(other.CompareTag("Projectile"))
         {
             maskManager.TakeDamage(5f);
-            Destroy(other);
+            Destroy(other.gameObject);
             return;
         }
 
@@ -169,6 +209,7 @@ public class PlayerAttack : MonoBehaviour
     {
         if (other.CompareTag("Donut"))
         {
+            Debug.Log($"PlayerAttack: Donut exited range: {other.gameObject.name}");
             donutsInRange.Remove(other.gameObject);
         }
         

@@ -52,8 +52,6 @@ SpriteRenderer:
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
   m_SmallMeshCulling: 1
-  m_ForceMeshLod: -1
-  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -75,7 +73,6 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 3
@@ -102,6 +99,7 @@ GameObject:
   - component: {fileID: 5178558006075927268}
   - component: {fileID: 7357998658342645129}
   - component: {fileID: 8267686087430167706}
+  - component: {fileID: -7458861761244685404}
   m_Layer: 0
   m_Name: Donut
   m_TagString: Donut
@@ -138,14 +136,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 2
-  stopDistance: 1.5
+  stopDistance: 3
   sadnessDamagePerSecond: 1
   fearDamage: 5
   angerDamage: 5
   angerDamageCooldown: 2
   disgustDamage: 10
   explosionTime: 5
-  projectilePrefab: {fileID: 9024297462280484581, guid: d676855bc9814a945bbe4bd062b1213f, type: 3}
   tracePrefab: {fileID: 6989611746498443311, guid: 32f8201ce7c3a6257b0ca602ea20623f, type: 3}
   spriteRenderer: {fileID: 0}
 --- !u!135 &7357998658342645129
@@ -176,10 +173,10 @@ Rigidbody:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 9024297462280484581}
-  serializedVersion: 5
+  serializedVersion: 4
   m_Mass: 1
-  m_LinearDamping: 5
-  m_AngularDamping: 5
+  m_Drag: 0
+  m_AngularDrag: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
@@ -196,3 +193,34 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 116
   m_CollisionDetection: 0
+--- !u!114 &-7458861761244685404
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9024297462280484581}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9555b66cf0e8cc1099b019149d8d8bf3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  happinessIdle: {fileID: 2269627722825661305, guid: 05b8e0b2fb90ab22db7adae3aede0173, type: 3}
+  sadnessWalk:
+  - {fileID: -6917605143230809144, guid: 354bb186e1fbe1a9fa37dd9c3c8a2197, type: 3}
+  - {fileID: 3168133596400267895, guid: e923e1ccc428793aa9dd5f187d92d4d6, type: 3}
+  sadnessPause: {fileID: -1018281327779499437, guid: 22c6af05391006f48ac165064a281546, type: 3}
+  fearIdle: {fileID: 2269627722825661305, guid: 05b8e0b2fb90ab22db7adae3aede0173, type: 3}
+  angerWalk:
+  - {fileID: -7373145248099711747, guid: e2347f3624e172e74b720edc6f77a2f7, type: 3}
+  - {fileID: 7590747647675574942, guid: e5f9c5b46de2518d78fda3d269377fe3, type: 3}
+  angerAttack:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  disgustWalk:
+  - {fileID: -120123866463175160, guid: 97dbef19e025ce0e3bd63db1c16cd3e9, type: 3}
+  - {fileID: -5507993145329163736, guid: 7d5bc4af2b4f2b872a4b888f94085f88, type: 3}
+  disgustExplosion: {fileID: -6708575599075889271, guid: d8e78871aaf0078f2af96e54f58a5316, type: 3}
+  walkFrameRate: 0.2
+  attackFrameRate: 0.15

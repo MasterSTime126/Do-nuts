@@ -29,9 +29,9 @@ public class ShaderToggle : MonoBehaviour
     IEnumerator Starter()
     {
         yield return StartCoroutine(Appear(false, true));
-        yield return StartCoroutine(Disappear(false, true));
-        yield return StartCoroutine(Appear(true, false));
-        yield return StartCoroutine(Disappear(true, false));
+        //yield return StartCoroutine(Disappear(false, true));
+        //yield return StartCoroutine(Appear(true, false));
+        //yield return StartCoroutine(Disappear(true, false));
     }
 
     IEnumerator Appear(bool useDissolve, bool useVertical)
@@ -42,7 +42,7 @@ public class ShaderToggle : MonoBehaviour
             materials[0].SetFloat(_dissolveAmount, 1.1f);
         
         float elapsedTime = 0f;
-        yield return new WaitForSeconds(0.25f);
+        //yield return new WaitForSeconds(0.25f);
         Debug.Log("Starting Appear Coroutine");
         
         while(elapsedTime < dissolveTime)
@@ -71,7 +71,7 @@ public class ShaderToggle : MonoBehaviour
         if(useVertical)
             materials[0].SetFloat(_dissolveAmount, 1.1f);
         float elapsedTime = 0f;
-        yield return new WaitForSeconds(0.25f);
+        //yield return new WaitForSeconds(0.25f);
         Debug.Log("Starting Disappear Coroutine");
 
         while(elapsedTime < dissolveTime)

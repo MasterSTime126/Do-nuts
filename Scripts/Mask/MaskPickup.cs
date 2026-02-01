@@ -2,12 +2,23 @@ using UnityEngine;
 
 public class MaskPickup : MonoBehaviour
 {
+    [Header("Mask Sprites (one per level)")]
+    [SerializeField] private Sprite happinessMaskSprite;
+    [SerializeField] private Sprite sadnessMaskSprite;
+    [SerializeField] private Sprite fearMaskSprite;
+    [SerializeField] private Sprite angerMaskSprite;
+    [SerializeField] private Sprite disgustMaskSprite;
+
+    [Header("Animation Settings")]
     [SerializeField] private float rotationSpeed = 50f;
     [SerializeField] private float bobSpeed = 2f;
     [SerializeField] private float bobHeight = 0.3f;
 
     private Vector3 startPosition;
     private MaskManager maskManager;
+    private SpriteRenderer spriteRenderer;
+    private bool isCollected = false;
+    private float spawnProtectionTime = 1f;  // Prevent instant pickup
 
     private void OnDestroy()
     {
@@ -21,9 +32,52 @@ public class MaskPickup : MonoBehaviour
     {
         startPosition = transform.position;
         maskManager = MaskManager.Instance;
+        spriteRenderer = GetComponent<SpriteRenderer>();
         
-        // Start inactive, MaskManager will activate when conditions are met
-        //gameObject.SetActive(false);
+        if (spriteRenderer == null)
+        {
+            spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+        }
+        
+        // Set the correct sprite based on current mask state
+        UpdateMaskSprite();
+        
+        // Disable collider briefly to prevent instant pickup after teleport
+        GetComponent<Collider>().enabled = false;
+        StartCoroutine(EnableColliderAfterDelay());
+    }
+
+    private void UpdateMaskSprite()
+    {
+        if (spriteRenderer == null || maskManager == null) return;
+        
+        Sprite maskSprite = GetSpriteForCurrentMask();
+        if (maskSprite != null)
+        {
+            spriteRenderer.sprite = maskSprite;
+        }
+    }
+
+    private Sprite GetSpriteForCurrentMask()
+    {
+        return maskManager.GetMaskState() switch
+        {
+            MaskManager.MaskState.Happiness => happinessMaskSprite,
+            MaskManager.MaskState.Sadness => sadnessMaskSprite,
+            MaskManager.MaskState.Fear => fearMaskSprite,
+            MaskManager.MaskState.Anger => angerMaskSprite,
+            MaskManager.MaskState.Disgust => disgustMaskSprite,
+            _ => happinessMaskSprite
+        };
+    }
+
+    private System.Collections.IEnumerator EnableColliderAfterDelay()
+    {
+        yield return new WaitForSeconds(spawnProtectionTime);
+        if (!isCollected)
+        {
+            GetComponent<Collider>().enabled = true;
+        }
     }
 
     private void Update()
@@ -39,6 +93,11 @@ public class MaskPickup : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         if (!other.CompareTag("Player")) return;
+        if (isCollected) return;  // Already collected, ignore
+
+        // Mark as collected and disable collider immediately
+        isCollected = true;
+        GetComponent<Collider>().enabled = false;
 
         if (maskManager != null)
         {

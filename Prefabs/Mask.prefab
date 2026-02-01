@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 3921144232133503544}
   - component: {fileID: 195743945128979171}
   - component: {fileID: 6867640904523223231}
-  - component: {fileID: 1649037121619767563}
+  - component: {fileID: 1839526509119474347}
   m_Layer: 0
   m_Name: Mask
   m_TagString: Mask
@@ -101,10 +101,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 222b04f8f3672b58fb366dfe05f60f6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  happinessMaskSprite: {fileID: 8452693859823089439, guid: e4b6f4d2f0d2958e38c35fb6039e80dd, type: 3}
+  sadnessMaskSprite: {fileID: -7595673631757121023, guid: b19f2e72870505744a306333ed3655d1, type: 3}
+  fearMaskSprite: {fileID: 3251843605417228032, guid: 75d6129777ed59bd7955e80e43fe70c0, type: 3}
+  angerMaskSprite: {fileID: 7749516977728276502, guid: cbdb59aceaad3ccb2a0a126317b4e3e1, type: 3}
+  disgustMaskSprite: {fileID: -7106733211697053972, guid: 5b85a3d1e1ea053f19d800e8d42b5a50, type: 3}
   rotationSpeed: 50
   bobSpeed: 2
   bobHeight: 0.3
---- !u!135 &1649037121619767563
+--- !u!135 &1839526509119474347
 SphereCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
