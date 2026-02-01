@@ -13,6 +13,13 @@ public class DonutLogic : MonoBehaviour
     [SerializeField] private float angerDamageCooldown = 2f;
     [SerializeField] private float disgustDamage = 10f;
     [SerializeField] private float explosionTime = 5f;
+    [SerializeField] private GameObject projectilePrefab;
+
+    [Header("Fear Settings")]
+    [SerializeField] private float fearSpeedMultiplier = 5f;
+    [SerializeField] private AudioClip screamerClip;
+    [SerializeField] private float screamerScale = 3f;
+    [SerializeField] private float screamerDuration = 0.6f;
 
     [Header("References")]
     [SerializeField] private GameObject tracePrefab;
@@ -27,6 +34,10 @@ public class DonutLogic : MonoBehaviour
 
     private MaskManager.MaskState currentMaskState;
     private MaskManager.MaskState newMaskState;
+
+    // Fear runtime vars
+    private float originalMoveSpeed = 0f;
+    private bool fearInitialized = false;
 
     private void Start()
     {
@@ -58,7 +69,8 @@ public class DonutLogic : MonoBehaviour
         if (maskManager == null || player == null || isDestroying) return;
 
         newMaskState = maskManager.GetMaskState();
-        if(newMaskState != currentMaskState){
+        if (newMaskState != currentMaskState)
+        {
             Debug.Log("Donut destroyed due to mask state change");
             Destroy(gameObject);
         }
@@ -97,23 +109,34 @@ public class DonutLogic : MonoBehaviour
 
         float distance = Vector3.Distance(transform.position, player.position);
 
-        if (distance > stopDistance)
+        MoveTowards(player.position);
+
+        if (damageTimer >= 0)
         {
-            MoveTowards(player.position);
-            isNearPlayer = false;
+            damageTimer -= Time.deltaTime;
         }
-        else
+        if (damageTimer < 0)
         {
-            isNearPlayer = true;
-            // Deal damage over time when near
-            maskManager.TakeDamage(sadnessDamagePerSecond * Time.deltaTime);
+            damageTimer = 3;
+            GameObject projectile = Instantiate(projectilePrefab, transform.position, Quaternion.identity);
         }
     }
 
     private void BehaviorFear()
     {
-        // Chase player, on collision: screamer, damage, blur, then disappear
-        GetComponent<Collider>().isTrigger = false;
+        // Fast chase: pass through scene objects and jumpscare on contact
+        // Make collider a trigger so donut can pass through obstacles
+        Collider col = GetComponent<Collider>();
+        if (col != null) col.isTrigger = true;
+
+        // Initialize high speed once per donut
+        if (!fearInitialized)
+        {
+            originalMoveSpeed = moveSpeed;
+            moveSpeed = Mathf.Max(1f, moveSpeed) * fearSpeedMultiplier;
+            fearInitialized = true;
+        }
+
         MoveTowards(player.position);
     }
 
@@ -173,13 +196,24 @@ public class DonutLogic : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         if (!other.CompareTag("Player") || isDestroying) return;
+        if (maskManager == null) return;
 
-        if (maskManager.GetMaskState() == MaskManager.MaskState.Happiness)
+        var state = maskManager.GetMaskState();
+
+        if (state == MaskManager.MaskState.Happiness)
         {
             // Player eats donut
             maskManager.OnDonutEaten();
             BeforeDestroy();
         }
+        else if (state == MaskManager.MaskState.Fear)
+        {
+            // Screamer effect, damage, blur then disappear
+            maskManager.TakeDamage(fearDamage);
+            TriggerScreamer();
+            BeforeDestroy();
+        }
+        // Other states keep using collision-based handlers (OnCollisionEnter/Stay)
     }
 
     private void OnCollisionEnter(Collision collision)
@@ -191,7 +225,7 @@ public class DonutLogic : MonoBehaviour
         switch (currentMask)
         {
             case MaskManager.MaskState.Fear:
-                // Screamer effect, damage, blur
+                // If donut for some reason still uses collisions, handle screamer here too
                 maskManager.TakeDamage(fearDamage);
                 TriggerScreamer();
                 BeforeDestroy();
@@ -233,10 +267,36 @@ public class DonutLogic : MonoBehaviour
     #region Special Effects
     private void TriggerScreamer()
     {
-        // TODO: Implement screamer effect
-        // - Play screamer sound
-        // - Apply blur effect to camera
+        // Play screamer sound at player's position so it continues even if donut is destroyed
+        if (screamerClip != null && player != null)
+        {
+            AudioSource.PlayClipAtPoint(screamerClip, player.position);
+        }
+
+        // Start a small visual jump-scare on the donut itself if possible
+        StartCoroutine(ScreamerVisual());
+
         Debug.Log("SCREAMER!");
+    }
+
+    private System.Collections.IEnumerator ScreamerVisual()
+    {
+        if (spriteRenderer == null)
+        {
+            yield break;
+        }
+
+        Vector3 originalScale = transform.localScale;
+        Vector3 targetScale = originalScale * screamerScale;
+
+        // Quick scale-up
+        transform.localScale = targetScale;
+
+        yield return new WaitForSeconds(screamerDuration);
+
+        // If not yet destroying, try to restore scale (may be destroyed soon)
+        if (!isDestroying)
+            transform.localScale = originalScale;
     }
 
     private void Explode()

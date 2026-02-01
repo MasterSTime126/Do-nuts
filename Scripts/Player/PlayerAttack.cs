@@ -148,7 +148,13 @@ public class PlayerAttack : MonoBehaviour
                 donutsInRange.Add(other.gameObject);
             }
         }
-        
+        if(other.CompareTag("Projectile"))
+        {
+            maskManager.TakeDamage(5f);
+            Destroy(other);
+            return;
+        }
+
         // AIUANAT - Track traces in range
         if (other.CompareTag("Trace"))
         {

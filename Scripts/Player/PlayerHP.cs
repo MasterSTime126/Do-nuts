@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -64,10 +65,16 @@ public class PlayerHP : MonoBehaviour
 
     private void OnTriggerEnter(Collider collider)
     {
-        if(collider.CompareTag("Donut"))
+        if (collider.CompareTag("Donut"))
         {
             donut = collider.gameObject;
             Debug.Log("Donut in range");
+        }
+        
+        if (collider.gameObject.CompareTag("Projectile"))
+        {
+            playerHP = Mathf.Clamp(playerHP - 5f, 0f, maxPlayerHP);
+            Destroy(collider.gameObject);
         }
     }
 
@@ -88,5 +95,7 @@ public class PlayerHP : MonoBehaviour
             EatDonut();
             Destroy(donut);
         }
+       
     }
+    
 }

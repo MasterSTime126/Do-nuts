@@ -1,3 +1,4 @@
+
 using UnityEngine;
 using System.Collections;
 
@@ -21,6 +22,10 @@ public class DonutSpawner : MonoBehaviour
     [Header("Happiness Mode")]
     [SerializeField] private int happinessDonutLimit = 10;
     private int donutsSpawnedInHappiness = 0;
+
+    [Header("Anger / Disgust Overrides")]
+    [Tooltip("If filled, donuts will spawn at one of these positions when MaskState is Anger.")]
+    [SerializeField] private Vector3[] angerSpawnPositions = new Vector3[0];
 
     private MaskManager maskManager;
     private Coroutine spawnCoroutine;
@@ -90,6 +95,27 @@ public class DonutSpawner : MonoBehaviour
 
     private Vector3 GetSpawnPosition()
     {
+        if (maskManager == null)
+        {
+            // fallback
+            return (spawnMode == SpawnMode.Center) ? GetRandomCenterPosition() : GetRandomBorderPosition();
+        }
+
+        MaskManager.MaskState state = maskManager.GetMaskState();
+
+        // Anger: if override positions provided, pick one of them
+        if (state == MaskManager.MaskState.Anger && angerSpawnPositions != null && angerSpawnPositions.Length > 0)
+        {
+            return angerSpawnPositions[Random.Range(0, angerSpawnPositions.Length)];
+        }
+
+        // Disgust: if override positions provided, pick one of them
+        if (state == MaskManager.MaskState.Disgust && angerSpawnPositions != null && angerSpawnPositions.Length > 0)
+        {
+            return angerSpawnPositions[Random.Range(0, angerSpawnPositions.Length)];
+        }
+
+        // Default behavior based on spawnMode
         switch (spawnMode)
         {
             case SpawnMode.Center:

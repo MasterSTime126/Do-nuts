@@ -1,3 +1,4 @@
+
 using System;
 using TMPro;
 using UnityEngine;
@@ -21,6 +22,7 @@ public class MaskManager : MonoBehaviour
 
     [Header("UI")]
     [SerializeField] private TMP_Text HPText;
+    [SerializeField] private TMP_Text MissionText;
 
     [Header("Player Stats")]
     [SerializeField] private float maxHP = 100f;
@@ -33,6 +35,8 @@ public class MaskManager : MonoBehaviour
     private int tracesCleared = 0;
     private float survivalTimer = 0f;
     private float totalPlayTime = 0f;
+    private static float bestTime = 0f;
+    private static float lastTime = 0f;
 
     [SerializeField] private Vector3[] maskSpawnPositions = new Vector3[5];
 
@@ -64,7 +68,11 @@ public class MaskManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
 
         SceneManager.sceneLoaded += OnSceneLoaded;
-        currentHP = maxHP*0.25f;
+        currentHP = maxHP * 0.25f;
+
+        // Load best and last times if present (0 means no record yet)
+        bestTime = PlayerPrefs.GetFloat("BestTime", 0f);
+        lastTime = PlayerPrefs.GetFloat("LastTime", 0f);
     }
 
     private void OnDestroy()
@@ -103,11 +111,12 @@ public class MaskManager : MonoBehaviour
                 Heal(0.5f * Time.deltaTime); // 0.5 HP per second
                 if (survivalTimer >= SADNESS_SURVIVAL_TIME && !maskSpawned)
                 {
+                    MissionText.text = "Find the Mask";
                     SpawnMask();
                 }
                 break;
 
-            case MaskState.Fear: 
+            case MaskState.Fear:
                 // No healing in fear level
                 break;
 
@@ -155,6 +164,7 @@ public class MaskManager : MonoBehaviour
 
         if (donutsEaten >= HAPPINESS_DONUTS_REQUIRED && !maskSpawned)
         {
+            MissionText.text = "Find the Mask";
             SpawnMask();
         }
     }
@@ -169,6 +179,7 @@ public class MaskManager : MonoBehaviour
 
         if (donutsKilled >= ANGER_KILLS_REQUIRED && !maskSpawned)
         {
+            MissionText.text = "Find the Mask";
             SpawnMask();
         }
     }
@@ -182,6 +193,7 @@ public class MaskManager : MonoBehaviour
 
         if (tracesCleared >= DISGUST_TRACES_REQUIRED && !maskSpawned)
         {
+            MissionText.text = "Find the Mask";
             SpawnMask();
         }
     }
@@ -207,21 +219,34 @@ public class MaskManager : MonoBehaviour
         {
             currentMask++;
             OnMaskChanged?.Invoke(currentMask);
-
-            if (currentMask == MaskState.TheEnd)
+            switch (currentMask)
             {
-                OnGameEnd?.Invoke(totalPlayTime);
-            }
-            else
-            {
-                // Load next level or reset current scene
-                ResetLevelProgress();
-                OnHPChanged?.Invoke(currentHP, maxHP);
+                case MaskState.Happiness:
+                    MissionText.text = $"Eat {HAPPINESS_DONUTS_REQUIRED} Donuts";
+                    break;
+                case MaskState.Sadness:
+                    MissionText.text = $"Survive for {SADNESS_SURVIVAL_TIME} Seconds";
+                    break;
+                case MaskState.Fear:
+                    MissionText.text = $"Find the Mask";
+                    break;
+                case MaskState.Anger:
+                    MissionText.text = $"Eliminate {ANGER_KILLS_REQUIRED} Donuts";
+                    break;
+                case MaskState.Disgust:
+                    MissionText.text = $"Clear {DISGUST_TRACES_REQUIRED} Traces";
+                    break;
+                case MaskState.TheEnd:
+                    // Update best and last times before notifying listeners / changing scene
+                    UpdateBestAndLastTimes();
+                    OnGameEnd?.Invoke(totalPlayTime);
+                    SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+                    break;
             }
         }
         if (MaskState.Fear == currentMask)
         {
-            Debug.Log("Spawning mask in Fear level");
+            MissionText.text = "Find the Mask";
             SpawnMask();
         }
     }
@@ -231,7 +256,7 @@ public class MaskManager : MonoBehaviour
         maskSpawned = true;
         // Find and activate the mask object in the scene
         GameObject mask = GameObject.FindGameObjectWithTag("Mask");
-        
+
         //Debug.LogWarning("Mask object not found in scene!");
         Debug.Log("Spawning mask for " + currentMask.ToString());
         mask = Instantiate(maskPrefab, maskSpawnPositions[(int)currentMask], Quaternion.identity);
@@ -253,7 +278,7 @@ public class MaskManager : MonoBehaviour
     {
         Debug.Log("Player died!");
         // Reset level or show game over
-        currentHP = maxHP*0.25f;
+        currentHP = maxHP * 0.25f;
         ResetLevelProgress();
         OnHPChanged?.Invoke(currentHP, maxHP);
         // Optionally reload the current scene
@@ -294,5 +319,31 @@ public class MaskManager : MonoBehaviour
             slowDuration -= Time.deltaTime;
         }
     }
+    #endregion
+
+    #region Best / Last Time Persistence
+    private void UpdateBestAndLastTimes()
+    {
+        // Save last run time always
+        lastTime = totalPlayTime;
+        PlayerPrefs.SetFloat("LastTime", lastTime);
+
+        // bestTime == 0 => no record yet
+        if (bestTime <= 0f || totalPlayTime < bestTime)
+        {
+            bestTime = totalPlayTime;
+            PlayerPrefs.SetFloat("BestTime", bestTime);
+            Debug.Log($"New best time recorded: {bestTime:F2} seconds");
+        }
+        else
+        {
+            Debug.Log($"Run finished: {totalPlayTime:F2} seconds (best: {bestTime:F2} seconds)");
+        }
+
+        PlayerPrefs.Save();
+    }
+
+    public static float GetBestTime() => bestTime;
+    public static float GetLastTime() => lastTime;
     #endregion
 }
