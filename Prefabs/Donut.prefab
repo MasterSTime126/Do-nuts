@@ -52,6 +52,8 @@ SpriteRenderer:
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
   m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -73,6 +75,7 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 3
@@ -142,6 +145,7 @@ MonoBehaviour:
   angerDamageCooldown: 2
   disgustDamage: 10
   explosionTime: 5
+  projectilePrefab: {fileID: 9024297462280484581, guid: d676855bc9814a945bbe4bd062b1213f, type: 3}
   tracePrefab: {fileID: 6989611746498443311, guid: 32f8201ce7c3a6257b0ca602ea20623f, type: 3}
   spriteRenderer: {fileID: 0}
 --- !u!135 &7357998658342645129
@@ -172,10 +176,10 @@ Rigidbody:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 9024297462280484581}
-  serializedVersion: 4
+  serializedVersion: 5
   m_Mass: 1
-  m_Drag: 5
-  m_AngularDrag: 5
+  m_LinearDamping: 5
+  m_AngularDamping: 5
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
