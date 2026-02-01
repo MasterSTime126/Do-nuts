@@ -6932,8 +6932,8 @@ MonoBehaviour:
   - {x: 0, y: 0, z: -150}
   - {x: 150, y: 0, z: -150}
   - {x: 0, y: 0, z: -300}
-  endSceneName: WinScene
-  loseSceneName: LoseScene
+  endSceneName: The End
+  loseSceneName: The End
 --- !u!4 &1582273173
 Transform:
   m_ObjectHideFlags: 0
