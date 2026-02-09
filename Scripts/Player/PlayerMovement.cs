@@ -9,6 +9,7 @@ public class PlayerMovement : MonoBehaviour
     private InputActionAsset inputActions;
     private InputActionMap playerActionMap;
     private InputAction moveAction;
+    private Rigidbody rb;
 
     // Movement pause for animations
     private bool isMovementPaused = false;
@@ -40,6 +41,12 @@ public class PlayerMovement : MonoBehaviour
    {
        playerAnimator = GetComponentInChildren<PlayerAnimator>();
        playerAudio = GetComponent<PlayerAudio>();
+       rb = GetComponent<Rigidbody>();
+       
+       if (rb == null)
+       {
+           Debug.LogError("PlayerMovement: Rigidbody component required for wall collision!");
+       }
    }
 
    private void Update()
@@ -76,10 +83,17 @@ public class PlayerMovement : MonoBehaviour
 
    private void FixedUpdate()
    {
-       if (isMovementPaused) return;
+       if (isMovementPaused || rb == null)
+       {
+           if (rb != null) rb.linearVelocity = new Vector3(0, rb.linearVelocity.y, 0);
+           return;
+       }
        
-       Vector3 move = new Vector3(movementInput.x, 0, movementInput.y) * moveSpeed * Time.fixedDeltaTime;
-       transform.Translate(move);
+       Vector3 inputDirection = new Vector3(movementInput.x, 0, movementInput.y).normalized;
+       Vector3 targetVelocity = inputDirection * moveSpeed;
+       
+       // Set horizontal velocity while preserving vertical (gravity)
+       rb.linearVelocity = new Vector3(targetVelocity.x, rb.linearVelocity.y, targetVelocity.z);
    }
 
 }

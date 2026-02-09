@@ -99,6 +99,7 @@ public class MaskManager : MonoBehaviour
 
     private void Update()
     {
+        if(HPText == null) return;
         HPText.text = $"HP: {Mathf.RoundToInt(currentHP)} / {Mathf.RoundToInt(maxHP)}";
         totalPlayTime += Time.deltaTime;
         ProcessStatusEffects();
@@ -211,67 +212,106 @@ public class MaskManager : MonoBehaviour
 
     public void CollectMask()
     {
+        Debug.Log("[MaskManager] CollectMask called");
         OnMaskCollected?.Invoke();
+        StartCoroutine(CollectMaskWithTransition());
+    }
+
+    private System.Collections.IEnumerator CollectMaskWithTransition()
+    {
+        // Step 1: Play disappear animation
+        PlayerAnimator playerAnimator = FindAnyObjectByType<PlayerAnimator>();
+        
+        if (playerAnimator != null)
+        {
+            bool animationComplete = false;
+            
+            Debug.Log("[MaskManager] Starting disappear animation...");
+            playerAnimator.PlayDisappearAnimation(() => animationComplete = true);
+            
+            // Wait for animation (with 3s timeout)
+            float elapsed = 0f;
+            while (!animationComplete && elapsed < 3f)
+            {
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+            
+            Debug.Log($"[MaskManager] Disappear animation done ({elapsed:F2}s)");
+        }
+        
+        // Step 2: Advance to next mask (teleport happens here)
+        Debug.Log("[MaskManager] Advancing to next mask...");
         AdvanceToNextMask();
     }
 
     private void TeleportPlayer(int levelIndex)
     {
-        if (playerSpawnPositions == null || levelIndex >= playerSpawnPositions.Length) return;
+        if (playerSpawnPositions == null || levelIndex >= playerSpawnPositions.Length)
+        {
+            Debug.LogError($"[MaskManager] Invalid teleport: levelIndex={levelIndex}");
+            return;
+        }
         
         GameObject player = GameObject.FindGameObjectWithTag("Player");
         if (player != null)
         {
-            Debug.Log($"Teleporting player to level {levelIndex} ({(MaskState)levelIndex}) at position: {playerSpawnPositions[levelIndex]}");
-            player.transform.position = playerSpawnPositions[levelIndex];
+            Vector3 targetPos = playerSpawnPositions[levelIndex];
+            Debug.Log($"[MaskManager] Teleporting to {(MaskState)levelIndex}: {targetPos}");
+            player.transform.position = targetPos;
+        }
+        else
+        {
+            Debug.LogError("[MaskManager] Player not found!");
         }
     }
 
     private void AdvanceToNextMask()
     {
         maskSpawned = false;
-        if (currentMask < MaskState.TheEnd)
+        
+        if (currentMask >= MaskState.TheEnd) return;
+        
+        currentMask++;
+        Debug.Log($"[MaskManager] Advanced to: {currentMask}");
+        
+        // Notify listeners (triggers appear animation)
+        OnMaskChanged?.Invoke(currentMask);
+        
+        // Teleport player
+        TeleportPlayer((int)currentMask);
+        
+        // Update mission text and spawn mask if needed
+        switch (currentMask)
         {
-            currentMask++;
-            OnMaskChanged?.Invoke(currentMask);
-            
-            // Teleport player to the new level's spawn position
-            TeleportPlayer((int)currentMask);
-            
-            switch (currentMask)
-            {
-                case MaskState.Happiness:
-                    MissionText.text = $"Eat {HAPPINESS_DONUTS_REQUIRED} Donuts";
-                    break;
-                case MaskState.Sadness:
-                    MissionText.text = $"Survive for {SADNESS_SURVIVAL_TIME} Seconds";
-                    break;
-                case MaskState.Fear:
-                    MissionText.text = $"Find the Mask";
-                    SpawnMask();  // Spawn mask immediately for Fear level
-                    break;
-                case MaskState.Anger:
-                    MissionText.text = $"Eliminate {ANGER_KILLS_REQUIRED} Donuts (press LMB)";
-                    break;
-                case MaskState.Disgust:
-                    MissionText.text = $"Clear {DISGUST_TRACES_REQUIRED} Traces (hold E)";
-                    break;
-                case MaskState.TheEnd:
-                    // Update best and last times before notifying listeners / changing scene
-                    UpdateBestAndLastTimes();
-                    OnGameEnd?.Invoke(totalPlayTime);
-                    
-                    // Load end scene
-                    Debug.Log($"Game completed! Total time: {totalPlayTime:F2} seconds. Loading end scene...");
-                    StartCoroutine(LoadEndScene());
-                    break;
-            }
+            case MaskState.Happiness:
+                MissionText.text = $"Eat {HAPPINESS_DONUTS_REQUIRED} Donuts";
+                break;
+            case MaskState.Sadness:
+                MissionText.text = $"Survive for {SADNESS_SURVIVAL_TIME} Seconds";
+                break;
+            case MaskState.Fear:
+                MissionText.text = $"Find the Mask";
+                SpawnMask();
+                break;
+            case MaskState.Anger:
+                MissionText.text = $"Eliminate {ANGER_KILLS_REQUIRED} Donuts (press LMB)";
+                break;
+            case MaskState.Disgust:
+                MissionText.text = $"Clear {DISGUST_TRACES_REQUIRED} Traces (hold E)";
+                break;
+            case MaskState.TheEnd:
+                UpdateBestAndLastTimes();
+                OnGameEnd?.Invoke(totalPlayTime);
+                Debug.Log($"[MaskManager] Game complete! Time: {totalPlayTime:F2}s");
+                StartCoroutine(LoadEndScene());
+                break;
         }
     }
 
     private System.Collections.IEnumerator LoadEndScene()
     {
-        Debug.Log($"LoadEndScene: Loading WIN scene '{endSceneName}'");
+        Debug.Log($"[MaskManager] Loading win scene: {endSceneName}");
         yield return new WaitForSeconds(0.5f);
         
         if (!string.IsNullOrEmpty(endSceneName) && Application.CanStreamedLevelBeLoaded(endSceneName))
@@ -280,24 +320,15 @@ public class MaskManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning($"End scene '{endSceneName}' not found!");
-            int nextSceneIndex = SceneManager.GetActiveScene().buildIndex + 1;
-            if (nextSceneIndex < SceneManager.sceneCountInBuildSettings)
-            {
-                SceneManager.LoadScene(nextSceneIndex);
-            }
+            Debug.LogWarning($"[MaskManager] End scene '{endSceneName}' not found!");
         }
     }
 
     private void SpawnMask()
     {
         maskSpawned = true;
-        // Find and activate the mask object in the scene
-        GameObject mask = GameObject.FindGameObjectWithTag("Mask");
-
-        //Debug.LogWarning("Mask object not found in scene!");
-        Debug.Log("Spawning mask for " + currentMask.ToString());
-        mask = Instantiate(maskPrefab, maskSpawnPositions[(int)currentMask], Quaternion.identity);
+        Debug.Log($"[MaskManager] Spawning mask for {currentMask}");
+        GameObject mask = Instantiate(maskPrefab, maskSpawnPositions[(int)currentMask], Quaternion.identity);
         mask.SetActive(true);
     }
 
@@ -314,7 +345,7 @@ public class MaskManager : MonoBehaviour
     #region Player Death
     private void HandlePlayerDeath()
     {
-        Debug.Log("Player died!");
+        Debug.Log("[MaskManager] Player died!");
         OnGameLost?.Invoke();
         LoseSceneManager.SetDeathData(currentMask, totalPlayTime);
         StartCoroutine(LoadLoseScene());
@@ -322,7 +353,7 @@ public class MaskManager : MonoBehaviour
 
     private System.Collections.IEnumerator LoadLoseScene()
     {
-        Debug.Log($"LoadLoseScene: Loading LOSE scene '{loseSceneName}'");
+        Debug.Log($"[MaskManager] Loading lose scene: {loseSceneName}");
         yield return new WaitForSeconds(0.5f);
         
         if (!string.IsNullOrEmpty(loseSceneName) && Application.CanStreamedLevelBeLoaded(loseSceneName))
@@ -331,7 +362,7 @@ public class MaskManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("No lose scene found! Resetting level instead.");
+            Debug.LogWarning("[MaskManager] Lose scene not found, resetting level");
             currentHP = maxHP * 0.25f;
             ResetLevelProgress();
             OnHPChanged?.Invoke(currentHP, maxHP);
@@ -378,20 +409,14 @@ public class MaskManager : MonoBehaviour
     #region Best / Last Time Persistence
     private void UpdateBestAndLastTimes()
     {
-        // Save last run time always
         lastTime = totalPlayTime;
         PlayerPrefs.SetFloat("LastTime", lastTime);
 
-        // bestTime == 0 => no record yet
         if (bestTime <= 0f || totalPlayTime < bestTime)
         {
             bestTime = totalPlayTime;
             PlayerPrefs.SetFloat("BestTime", bestTime);
-            Debug.Log($"New best time recorded: {bestTime:F2} seconds");
-        }
-        else
-        {
-            Debug.Log($"Run finished: {totalPlayTime:F2} seconds (best: {bestTime:F2} seconds)");
+            Debug.Log($"[MaskManager] New best time: {bestTime:F2}s");
         }
 
         PlayerPrefs.Save();

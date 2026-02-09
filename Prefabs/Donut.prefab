@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2563673907560177155}
   - component: {fileID: 5502632923542576296}
+  - component: {fileID: 8915190042383027501}
   m_Layer: 0
   m_Name: Donut
   m_TagString: Untagged
@@ -87,6 +88,19 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &8915190042383027501
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7459619031868699955}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e300af39a2d3c2f6ba917c46b44b82c0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  dissolveTime: 0.75
 --- !u!1 &9024297462280484581
 GameObject:
   m_ObjectHideFlags: 0
@@ -145,6 +159,9 @@ MonoBehaviour:
   explosionTime: 5
   screamerDuration: 0.5
   screamerMaxScale: 5
+  shaderAnimationDuration: 0.5
+  shaderProgressProperty: _Progress
+  useAppearAnimation: 1
   tracePrefab: {fileID: 6989611746498443311, guid: 32f8201ce7c3a6257b0ca602ea20623f, type: 3}
   spriteRenderer: {fileID: 0}
 --- !u!135 &7357998658342645129
@@ -177,8 +194,8 @@ Rigidbody:
   m_GameObject: {fileID: 9024297462280484581}
   serializedVersion: 4
   m_Mass: 1
-  m_Drag: 0
-  m_AngularDrag: 0.05
+  m_Drag: 5
+  m_AngularDrag: 5
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}

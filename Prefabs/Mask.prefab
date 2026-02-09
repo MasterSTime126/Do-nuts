@@ -28,7 +28,7 @@ Transform:
   m_GameObject: {fileID: 3222449161323165606}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 5.183722, y: 0.5, z: 0}
+  m_LocalPosition: {x: 5.183722, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -108,7 +108,7 @@ MonoBehaviour:
   disgustMaskSprite: {fileID: -7106733211697053972, guid: 5b85a3d1e1ea053f19d800e8d42b5a50, type: 3}
   rotationSpeed: 50
   bobSpeed: 2
-  bobHeight: 0.3
+  bobHeight: 0.1
 --- !u!135 &1839526509119474347
 SphereCollider:
   m_ObjectHideFlags: 0

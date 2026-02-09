@@ -18,9 +18,24 @@ public class DonutLogic : MonoBehaviour
     [SerializeField] private float screamerDuration = 0.5f;
     [SerializeField] private float screamerMaxScale = 5f;
 
+    // CHECKPOINTHEREIDIOT - Donut Shader Animation Settings
+    // Change these values to adjust the appear animation:
+    // shaderAnimationDuration = how long the animation takes (default 0.5f)
+    // shaderProgressProperty = the property name in your shader (default "_Progress")
+    // startValue = starting value for appear animation (0 = invisible)
+    // endValue = ending value for appear animation (1 = fully visible)
+    [Header("Shader Animation Settings")]
+    [SerializeField] private float shaderAnimationDuration = 0.5f;
+    [SerializeField] private string shaderProgressProperty = "_Progress";
+    [SerializeField] private bool useAppearAnimation = true;
+
+    private Material materialInstance;
+
     [Header("References")]
     [SerializeField] private GameObject tracePrefab;
     [SerializeField] private SpriteRenderer spriteRenderer;
+
+    private GameObject childObject;
 
     private MaskManager maskManager;
     private Transform player;
@@ -36,6 +51,7 @@ public class DonutLogic : MonoBehaviour
 
     private void Start()
     {
+        childObject = transform.GetChild(0).gameObject;
         maskManager = MaskManager.Instance;
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null) player = playerObj.transform;
@@ -50,15 +66,24 @@ public class DonutLogic : MonoBehaviour
             explosionTimer = explosionTime;
         }
 
-        if (maskManager != null && maskManager.GetMaskState() != MaskManager.MaskState.Happiness)
-        {
-            transform.rotation = Quaternion.Euler(0f, 0f, 0f);
-            transform.position = new Vector3(transform.position.x, 0.5f, transform.position.z);
-        }
+        
 
         moveSpeed = Random.Range(moveSpeed, moveSpeed * 2f);
 
         currentMaskState = maskManager.GetMaskState();
+
+        // Create material instance for shader animation
+        if (spriteRenderer != null && spriteRenderer.material != null)
+        {
+            materialInstance = new Material(spriteRenderer.material);
+            spriteRenderer.material = materialInstance;
+            
+            // Play appear animation on spawn
+            if (useAppearAnimation)
+            {
+                PlayAppearAnimation();
+            }
+        }
     }
 
     private void Update()
@@ -89,6 +114,8 @@ public class DonutLogic : MonoBehaviour
                 BehaviorDisgust();
                 break;
         }
+
+        
     }
 
     #region Mask Behaviors
@@ -166,8 +193,22 @@ public class DonutLogic : MonoBehaviour
     #region Movement
     private void MoveTowards(Vector3 target)
     {
+        if (isDestroying) return;
+
         Vector3 direction = (target - transform.position).normalized;
         direction.y = 0;
+        if (maskManager != null && maskManager.GetMaskState() != MaskManager.MaskState.Happiness)
+        {
+            if (childObject != null)
+            {
+                // Face right if player is to the right, otherwise face left
+                if (player != null && player.position.x < transform.position.x)
+                    childObject.transform.rotation = Quaternion.Euler(0f, 0f, 0f);
+                else
+                    childObject.transform.rotation = Quaternion.Euler(0f, 180f, 0f);
+            }
+            transform.position = new Vector3(transform.position.x, 0.5f, transform.position.z);
+        }
         transform.position += direction * moveSpeed * Time.deltaTime;
     }
 
@@ -343,5 +384,61 @@ public class DonutLogic : MonoBehaviour
 
         Destroy(gameObject);
     }
+    #endregion
+
+    #region Shader Animation
+    
+    /// <summary>
+    /// Play appear animation (0 to 1)
+    /// </summary>
+    public void PlayAppearAnimation()
+    {
+        if (materialInstance == null) return;
+        StartCoroutine(AnimateShaderProgress(0f, 1f, shaderAnimationDuration));
+    }
+
+    /// <summary>
+    /// Play disappear animation (1 to 0)
+    /// </summary>
+    public void PlayDisappearAnimation()
+    {
+        if (materialInstance == null) return;
+        StartCoroutine(AnimateShaderProgress(1f, 0f, shaderAnimationDuration));
+    }
+
+    /// <summary>
+    /// Core animation coroutine - animates shader progress from startValue to endValue
+    /// </summary>
+    private System.Collections.IEnumerator AnimateShaderProgress(float startValue, float endValue, float duration)
+    {
+        if (materialInstance == null) yield break;
+
+        int propertyID = Shader.PropertyToID(shaderProgressProperty);
+        float elapsed = 0f;
+
+        // Set initial value
+        materialInstance.SetFloat(propertyID, startValue);
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+            float currentValue = Mathf.Lerp(startValue, endValue, t);
+            materialInstance.SetFloat(propertyID, currentValue);
+            yield return null;
+        }
+
+        // Ensure we hit the exact end value
+        materialInstance.SetFloat(propertyID, endValue);
+    }
+
+    public void SetShaderProgress(float value)
+    {
+        if (materialInstance != null)
+        {
+            materialInstance.SetFloat(Shader.PropertyToID(shaderProgressProperty), value);
+        }
+    }
+
     #endregion
 }

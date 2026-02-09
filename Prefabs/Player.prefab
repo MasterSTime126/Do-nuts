@@ -138,6 +138,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f016894c643635e79a3754e2252dcc1e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  moveSpeed: 7.5
 --- !u!114 &1089644141293959239
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -225,7 +226,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6ca4fbc8666a9c467b5db2b5665de396, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maskManager: {fileID: 0}
+  attackCooldown: 0.75
+  attackPauseDuration: 0.3
+  cleanPauseDuration: 0.6
+  attackRange: 2
+  donutLayerMask:
+    serializedVersion: 2
+    m_Bits: 0
 --- !u!1 &3399150665858127662
 GameObject:
   m_ObjectHideFlags: 0
