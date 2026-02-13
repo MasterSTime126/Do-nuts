@@ -18,6 +18,12 @@ public class DonutLogic : MonoBehaviour
     [SerializeField] private float screamerDuration = 0.5f;
     [SerializeField] private float screamerMaxScale = 5f;
 
+    [Header("Fear Ghost Settings")]
+    [SerializeField] private float ghostMinAlpha = 0.3f;
+    [SerializeField] private float ghostMaxAlpha = 0.8f;
+    [SerializeField] private float ghostFlickerSpeed = 2f;
+    [SerializeField] private float ghostAppearDuration = 0.5f;
+
     // CHECKPOINTHEREIDIOT - Donut Shader Animation Settings
     // Change these values to adjust the appear animation:
     // shaderAnimationDuration = how long the animation takes (default 0.5f)
@@ -48,6 +54,8 @@ public class DonutLogic : MonoBehaviour
 
     private MaskManager.MaskState currentMaskState;
     private MaskManager.MaskState newMaskState;
+    private bool isGhostMode = false;
+    private Color originalColor;
 
     private void Start()
     {
@@ -57,32 +65,32 @@ public class DonutLogic : MonoBehaviour
         if (playerObj != null) player = playerObj.transform;
 
         if (spriteRenderer == null) spriteRenderer = GetComponent<SpriteRenderer>();
+        if (spriteRenderer == null) spriteRenderer = GetComponentInChildren<SpriteRenderer>();
         
         donutAnimator = GetComponent<DonutAnimator>();
 
-        // Initialize explosion timer for Disgust level
-        if (maskManager != null && maskManager.GetMaskState() == MaskManager.MaskState.Disgust)
+        currentMaskState = maskManager != null ? maskManager.GetMaskState() : MaskManager.MaskState.Happiness;
+
+        // Initialize based on mask state
+        if (currentMaskState == MaskManager.MaskState.Disgust)
         {
             explosionTimer = explosionTime;
         }
-
         
+        // Fear mode: Enable ghost mode (pass through walls)
+        if (currentMaskState == MaskManager.MaskState.Fear)
+        {
+            EnableGhostMode();
+        }
 
         moveSpeed = Random.Range(moveSpeed, moveSpeed * 2f);
-
-        currentMaskState = maskManager.GetMaskState();
 
         // Create material instance for shader animation
         if (spriteRenderer != null && spriteRenderer.material != null)
         {
             materialInstance = new Material(spriteRenderer.material);
             spriteRenderer.material = materialInstance;
-            
-            // Play appear animation on spawn
-            if (useAppearAnimation)
-            {
-                PlayAppearAnimation();
-            }
+            originalColor = spriteRenderer.color;
         }
     }
 
@@ -150,8 +158,83 @@ public class DonutLogic : MonoBehaviour
     private void BehaviorFear()
     {
         // Chase player, on collision: screamer, damage, blur, then disappear
-        GetComponent<Collider>().isTrigger = false;
         MoveTowards(player.position);
+        
+        // Ghost flickering effect
+        if (isGhostMode && spriteRenderer != null)
+        {
+            float flicker = Mathf.Lerp(ghostMinAlpha, ghostMaxAlpha, 
+                (Mathf.Sin(Time.time * ghostFlickerSpeed) + 1f) * 0.5f);
+            Color c = originalColor;
+            c.a = flicker;
+            spriteRenderer.color = c;
+        }
+    }
+
+    private void EnableGhostMode()
+    {
+        isGhostMode = true;
+        
+        // Make collider a trigger to pass through walls but still detect player
+        Collider col = GetComponent<Collider>();
+        if (col != null)
+        {
+            col.isTrigger = true;
+            Debug.Log($"[DonutLogic] Ghost collider isTrigger={col.isTrigger}");
+        }
+        
+        // Add Rigidbody if not present (required for trigger detection)
+        Rigidbody rb = GetComponent<Rigidbody>();
+        if (rb == null)
+        {
+            rb = gameObject.AddComponent<Rigidbody>();
+            rb.isKinematic = true;  // Don't use physics, just for trigger detection
+            rb.useGravity = false;
+            Debug.Log("[DonutLogic] Added kinematic Rigidbody for trigger detection");
+        }
+        
+        // Start with ghost appear animation
+        if (spriteRenderer != null)
+        {
+            StartCoroutine(GhostAppearAnimation());
+        }
+        
+        Debug.Log("[DonutLogic] Ghost mode enabled");
+    }
+
+    private System.Collections.IEnumerator GhostAppearAnimation()
+    {
+        // Fade in from invisible
+        float elapsed = 0f;
+        Color c = originalColor;
+        c.a = 0f;
+        spriteRenderer.color = c;
+
+        while (elapsed < ghostAppearDuration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / ghostAppearDuration;
+            c.a = Mathf.Lerp(0f, ghostMaxAlpha, t);
+            spriteRenderer.color = c;
+            yield return null;
+        }
+    }
+
+    private System.Collections.IEnumerator GhostDisappearAnimation()
+    {
+        // Fade out before destroying
+        float elapsed = 0f;
+        Color c = spriteRenderer.color;
+        float startAlpha = c.a;
+
+        while (elapsed < ghostAppearDuration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / ghostAppearDuration;
+            c.a = Mathf.Lerp(startAlpha, 0f, t);
+            spriteRenderer.color = c;
+            yield return null;
+        }
     }
 
     private void BehaviorAnger()
@@ -223,13 +306,40 @@ public class DonutLogic : MonoBehaviour
     #region Collision Handling
     private void OnTriggerEnter(Collider other)
     {
+        Debug.Log($"[DonutLogic] OnTriggerEnter: {other.name}, tag={other.tag}, isDestroying={isDestroying}");
+        
         if (!other.CompareTag("Player") || isDestroying) return;
 
-        if (maskManager.GetMaskState() == MaskManager.MaskState.Happiness)
+        MaskManager.MaskState state = maskManager.GetMaskState();
+        Debug.Log($"[DonutLogic] Player triggered! state={state}, isGhostMode={isGhostMode}");
+
+        if (state == MaskManager.MaskState.Happiness)
         {
             // Player eats donut
+            Debug.Log("[DonutLogic] Happiness - eating donut");
             maskManager.OnDonutEaten();
             BeforeDestroy();
+        }
+        else if (state == MaskManager.MaskState.Fear && isGhostMode)
+        {
+            // Ghost donut hits player - trigger screamer
+            Debug.Log("[DonutLogic] FEAR - Ghost hit player - SCREAMER!");
+            maskManager.TakeDamage(fearDamage);
+            
+            // Trigger screamer sound
+            PlayerAudio playerAudio = other.GetComponent<PlayerAudio>();
+            if (playerAudio != null)
+            {
+                playerAudio.PlayScreamer();
+                Debug.Log("[DonutLogic] Screamer sound played");
+            }
+            else
+            {
+                Debug.LogWarning("[DonutLogic] PlayerAudio not found on player!");
+            }
+            
+            // Play screamer visual effect
+            StartCoroutine(ScreamerEffect());
         }
     }
 
@@ -241,21 +351,8 @@ public class DonutLogic : MonoBehaviour
 
         switch (currentMask)
         {
-            case MaskManager.MaskState.Fear:
-                // Deal damage on touch, trigger screamer, then destroy
-                maskManager.TakeDamage(fearDamage);
-                
-                // Trigger screamer sound on player
-                PlayerAudio playerAudio = collision.gameObject.GetComponent<PlayerAudio>();
-                if (playerAudio != null)
-                {
-                    playerAudio.PlayScreamer();
-                    Debug.Log("DonutLogic: Screamer triggered!");
-                }
-                
-                BeforeDestroy();
-                break;
-
+            // Note: Fear mode uses OnTriggerEnter since ghosts are triggers
+            
             case MaskManager.MaskState.Anger:
                 // Deal damage with cooldown, don't destroy
                 if (damageTimer <= 0)
@@ -331,19 +428,21 @@ public class DonutLogic : MonoBehaviour
 
     private System.Collections.IEnumerator DestroyWithAnimation()
     {
-        // Simple scale down animation
-        float duration = 0.3f;
-        float elapsed = 0f;
-        Vector3 originalScale = transform.localScale;
-
-        while (elapsed < duration)
+        // Use ghost fade out in Fear mode
+        if (isGhostMode)
         {
-            elapsed += Time.deltaTime;
-            float t = elapsed / duration;
-            transform.localScale = Vector3.Lerp(originalScale, Vector3.zero, t);
-            yield return null;
+            yield return StartCoroutine(GhostDisappearAnimation());
         }
-
+        else
+        {
+            // Use shader toggle for other modes
+            ShaderToggle shader = GetComponentInChildren<ShaderToggle>();
+            if (shader != null)
+            {
+                yield return StartCoroutine(shader.Disappear(true, false));
+            }
+        }
+        
         Destroy(gameObject);
     }
 
@@ -388,14 +487,6 @@ public class DonutLogic : MonoBehaviour
 
     #region Shader Animation
     
-    /// <summary>
-    /// Play appear animation (0 to 1)
-    /// </summary>
-    public void PlayAppearAnimation()
-    {
-        if (materialInstance == null) return;
-        StartCoroutine(AnimateShaderProgress(0f, 1f, shaderAnimationDuration));
-    }
 
     /// <summary>
     /// Play disappear animation (1 to 0)
@@ -403,35 +494,13 @@ public class DonutLogic : MonoBehaviour
     public void PlayDisappearAnimation()
     {
         if (materialInstance == null) return;
-        StartCoroutine(AnimateShaderProgress(1f, 0f, shaderAnimationDuration));
+        StartCoroutine(GetComponent<ShaderToggle>().Disappear(true, false));
     }
 
     /// <summary>
     /// Core animation coroutine - animates shader progress from startValue to endValue
     /// </summary>
-    private System.Collections.IEnumerator AnimateShaderProgress(float startValue, float endValue, float duration)
-    {
-        if (materialInstance == null) yield break;
-
-        int propertyID = Shader.PropertyToID(shaderProgressProperty);
-        float elapsed = 0f;
-
-        // Set initial value
-        materialInstance.SetFloat(propertyID, startValue);
-
-        while (elapsed < duration)
-        {
-            elapsed += Time.deltaTime;
-            float t = Mathf.Clamp01(elapsed / duration);
-            float currentValue = Mathf.Lerp(startValue, endValue, t);
-            materialInstance.SetFloat(propertyID, currentValue);
-            yield return null;
-        }
-
-        // Ensure we hit the exact end value
-        materialInstance.SetFloat(propertyID, endValue);
-    }
-
+    
     public void SetShaderProgress(float value)
     {
         if (materialInstance != null)

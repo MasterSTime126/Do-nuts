@@ -182,7 +182,7 @@ public class PlayerAttack : MonoBehaviour
     {
         if (other.CompareTag("Donut"))
         {
-            Debug.Log($"PlayerAttack: Donut entered range: {other.gameObject.name}");
+            //Debug.Log($"PlayerAttack: Donut entered range: {other.gameObject.name}");
             if (!donutsInRange.Contains(other.gameObject))
             {
                 donutsInRange.Add(other.gameObject);
@@ -209,7 +209,7 @@ public class PlayerAttack : MonoBehaviour
     {
         if (other.CompareTag("Donut"))
         {
-            Debug.Log($"PlayerAttack: Donut exited range: {other.gameObject.name}");
+            //Debug.Log($"PlayerAttack: Donut exited range: {other.gameObject.name}");
             donutsInRange.Remove(other.gameObject);
         }
         

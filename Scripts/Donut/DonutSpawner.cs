@@ -130,7 +130,8 @@ public class DonutSpawner : MonoBehaviour
                     SpawnDonut();
                     donutsSpawnedInHappiness++;
                 }
-                yield return new WaitForSeconds(baseSpawnInterval);
+                yield return new WaitForSeconds(0f);
+                //yield return new WaitForSeconds(baseSpawnInterval);
             }
             else
             {

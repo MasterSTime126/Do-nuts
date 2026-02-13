@@ -118,7 +118,7 @@ public class MaskPickup : MonoBehaviour
         {
             elapsed += Time.deltaTime;
             float t = elapsed / duration;
-            transform.localScale = Vector3.Lerp(originalScale, originalScale * 1.5f, t);
+            transform.localScale = Vector3.Lerp(originalScale, originalScale * 3f, t);
             yield return null;
         }
 

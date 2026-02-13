@@ -6,8 +6,6 @@ public class PlayerAnimator : MonoBehaviour
     [SerializeField] private SpriteRenderer spriteRenderer;
 
     [Header("Transition Animation Settings")]
-    [SerializeField] private float transitionDuration = 0.75f;
-    [SerializeField] private string shaderProperty = "_Vertical";  // Your shader property
     [SerializeField] private bool useTransitionAnimation = true;
 
     [Header("Happiness Sprites")]
@@ -40,8 +38,7 @@ public class PlayerAnimator : MonoBehaviour
     [SerializeField] private float cleanSpeed = 0.3f;
 
     private MaskManager maskManager;
-    private Material material;
-    private int shaderPropertyID;
+    private ShaderToggle shaderToggle;
     
     private int walkFrame = 0;
     private float walkTimer = 0f;
@@ -58,28 +55,24 @@ public class PlayerAnimator : MonoBehaviour
         if (spriteRenderer == null)
             spriteRenderer = GetComponent<SpriteRenderer>();
 
-        // Create material instance from existing material
-        if (spriteRenderer != null && spriteRenderer.material != null)
-        {
-            material = new Material(spriteRenderer.material);
-            spriteRenderer.material = material;
-            shaderPropertyID = Shader.PropertyToID(shaderProperty);
-        }
+        // Get ShaderToggle component
+        shaderToggle = GetComponent<ShaderToggle>();
+        if (shaderToggle == null)
+            shaderToggle = GetComponentInChildren<ShaderToggle>();
 
         // Subscribe to mask change event
         if (maskManager != null)
             maskManager.OnMaskChanged += OnMaskChanged;
 
         UpdateIdleSprite();
+        
+        Debug.Log($"[PlayerAnimator] Started. ShaderToggle found: {shaderToggle != null}");
     }
 
     private void OnDestroy()
     {
         if (maskManager != null)
             maskManager.OnMaskChanged -= OnMaskChanged;
-
-        if (material != null)
-            Destroy(material);
     }
 
     private void Update()
@@ -101,29 +94,29 @@ public class PlayerAnimator : MonoBehaviour
     }
 
     /// <summary>
-    /// Play disappear animation before teleporting (0 -> 1)
+    /// Play disappear animation before teleporting
     /// </summary>
     public void PlayDisappearAnimation(System.Action onComplete = null)
     {
         Debug.Log($"[PlayerAnimator] PlayDisappearAnimation called");
         
-        if (useTransitionAnimation && material != null)
+        if (useTransitionAnimation && shaderToggle != null)
         {
             StartCoroutine(DisappearTransition(onComplete));
         }
         else
         {
-            Debug.Log("[PlayerAnimator] Transition disabled, invoking callback immediately");
+            Debug.Log("[PlayerAnimator] No ShaderToggle or transition disabled, invoking callback immediately");
             onComplete?.Invoke();
         }
     }
 
     private System.Collections.IEnumerator DisappearTransition(System.Action onComplete)
     {
-        Debug.Log($"[PlayerAnimator] DISAPPEAR: {shaderProperty} 0 -> 1 over {transitionDuration}s");
+        Debug.Log("[PlayerAnimator] DISAPPEAR animation starting...");
         
-        // Animate 0 -> 1 (visible to invisible)
-        yield return AnimateShader(0f, 1f);
+        // Use ShaderToggle.Disappear() like DonutLogic
+        yield return StartCoroutine(shaderToggle.Disappear(false, true));
         
         Debug.Log("[PlayerAnimator] DISAPPEAR complete, invoking callback");
         onComplete?.Invoke();
@@ -133,42 +126,20 @@ public class PlayerAnimator : MonoBehaviour
     {
         Debug.Log($"[PlayerAnimator] AppearTransition started for {newMask}");
         
-        if (useTransitionAnimation && material != null)
+        // Small delay for teleport to complete
+        yield return new WaitForSeconds(0.05f);
+        
+        UpdateIdleSprite();
+        
+        if (useTransitionAnimation && shaderToggle != null)
         {
-            // Small delay for teleport to complete
-            yield return new WaitForSeconds(0.05f);
+            Debug.Log("[PlayerAnimator] APPEAR animation starting...");
             
-            UpdateIdleSprite();
-            
-            Debug.Log($"[PlayerAnimator] APPEAR: {shaderProperty} 1 -> 0 over {transitionDuration}s");
-            
-            // Animate 1 -> 0 (invisible to visible)
-            yield return AnimateShader(1f, 0f);
+            // Use ShaderToggle.Appear() like DonutLogic
+            yield return StartCoroutine(shaderToggle.Appear(false, true));
             
             Debug.Log("[PlayerAnimator] APPEAR complete");
         }
-        else
-        {
-            UpdateIdleSprite();
-            if (material != null)
-                material.SetFloat(shaderPropertyID, 0f);
-        }
-    }
-
-    private System.Collections.IEnumerator AnimateShader(float from, float to)
-    {
-        float elapsed = 0f;
-        material.SetFloat(shaderPropertyID, from);
-
-        while (elapsed < transitionDuration)
-        {
-            elapsed += Time.deltaTime;
-            float t = Mathf.Clamp01(elapsed / transitionDuration);
-            material.SetFloat(shaderPropertyID, Mathf.Lerp(from, to, t));
-            yield return null;
-        }
-
-        material.SetFloat(shaderPropertyID, to);
     }
 
     #endregion

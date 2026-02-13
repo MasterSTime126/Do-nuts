@@ -59,12 +59,19 @@ public class MaskManager : MonoBehaviour
     private bool maskSpawned = false;
     private bool isInMainMenu = false;
 
+    // Achievements!
+    private bool mad_sad = false;           // Survived for 3 minutes with Sadness Mask
+    private bool bat_man = false;           // Killed 20 donuts
+    private bool disgust_master = false;    // 15 Disgust Mask traces cleared
+    private bool no_hit = true;            // No hits taken
+    private bool speedy = false;            // Under 3 minutes playtime
+
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
         {
-            Destroy(gameObject);
-            return;
+            Destroy(Instance.gameObject);
         }
 
         Instance = this;
@@ -76,6 +83,12 @@ public class MaskManager : MonoBehaviour
         // Load best and last times if present (0 means no record yet)
         bestTime = PlayerPrefs.GetFloat("BestTime", 0f);
         lastTime = PlayerPrefs.GetFloat("LastTime", 0f);
+
+        mad_sad = false;
+        bat_man = false;
+        disgust_master = false;
+        no_hit = true;
+        speedy = false;
     }
 
     private void OnDestroy()
@@ -118,6 +131,11 @@ public class MaskManager : MonoBehaviour
                     MissionText.text = "Find the Mask";
                     SpawnMask();
                 }
+                if(survivalTimer >= 180f && !mad_sad)
+                {
+                    mad_sad = true;
+                    AchievementManager.Instance?.UnlockAchievement("Mad Sad - Survived 3 minutes!");
+                }
                 break;
 
             case MaskState.Fear:
@@ -139,7 +157,8 @@ public class MaskManager : MonoBehaviour
     {
         currentHP = Mathf.Clamp(currentHP - damage, 0f, maxHP);
         OnHPChanged?.Invoke(currentHP, maxHP);
-
+        
+        no_hit = false; // Achievement failed
         if (currentHP <= 0f)
         {
             HandlePlayerDeath();
@@ -186,6 +205,11 @@ public class MaskManager : MonoBehaviour
             MissionText.text = "Find the Mask";
             SpawnMask();
         }
+        if(donutsKilled >= 20 && !bat_man)
+        {
+            bat_man = true;
+            AchievementManager.Instance?.UnlockAchievement("Bat Man - Killed 20 donuts!");
+        }
     }
 
     public void OnTraceCleared()
@@ -199,6 +223,11 @@ public class MaskManager : MonoBehaviour
         {
             MissionText.text = "Find the Mask";
             SpawnMask();
+        }
+        if(tracesCleared >= 15 && !disgust_master)
+        {
+            disgust_master = true;
+            AchievementManager.Instance?.UnlockAchievement("Disgust Master - Cleared 15 traces!");
         }
     }
 
@@ -258,7 +287,7 @@ public class MaskManager : MonoBehaviour
         {
             Vector3 targetPos = playerSpawnPositions[levelIndex];
             Debug.Log($"[MaskManager] Teleporting to {(MaskState)levelIndex}: {targetPos}");
-            player.transform.position = targetPos;
+            player.GetComponent<PlayerMovement>().TeleportTo(targetPos);
         }
         else
         {
@@ -301,6 +330,19 @@ public class MaskManager : MonoBehaviour
                 MissionText.text = $"Clear {DISGUST_TRACES_REQUIRED} Traces (hold E)";
                 break;
             case MaskState.TheEnd:
+                // Check speedy achievement (under 3 minutes)
+                if (totalPlayTime < 180f)
+                {
+                    speedy = true;
+                    AchievementManager.Instance?.UnlockAchievement("Speedy!");
+                }
+                
+                // Check no_hit achievement
+                if (no_hit)
+                {
+                    AchievementManager.Instance?.UnlockAchievement("Untouchable!");
+                }
+                
                 UpdateBestAndLastTimes();
                 OnGameEnd?.Invoke(totalPlayTime);
                 Debug.Log($"[MaskManager] Game complete! Time: {totalPlayTime:F2}s");

@@ -25,6 +25,14 @@ public class PlayerMovement : MonoBehaviour
         pauseTimer = duration;
     }
 
+    public void TeleportTo(Vector3 targetPosition)
+    {
+        if (rb != null)
+        {
+            rb.MovePosition(targetPosition);
+        }
+    }
+
    private void OnEnable()
    {
        inputActions = GetComponent<PlayerInput>().actions;
@@ -39,6 +47,7 @@ public class PlayerMovement : MonoBehaviour
 
    private void Start()
    {
+       
        playerAnimator = GetComponentInChildren<PlayerAnimator>();
        playerAudio = GetComponent<PlayerAudio>();
        rb = GetComponent<Rigidbody>();
@@ -47,10 +56,12 @@ public class PlayerMovement : MonoBehaviour
        {
            Debug.LogError("PlayerMovement: Rigidbody component required for wall collision!");
        }
+       AchievementManager.Instance?.UnlockAchievement("Starting the game!");
    }
 
    private void Update()
    {
+        
        if (pauseTimer > 0)
        {
            pauseTimer -= Time.deltaTime;
@@ -91,6 +102,8 @@ public class PlayerMovement : MonoBehaviour
        
        Vector3 inputDirection = new Vector3(movementInput.x, 0, movementInput.y).normalized;
        Vector3 targetVelocity = inputDirection * moveSpeed;
+       
+
        
        // Set horizontal velocity while preserving vertical (gravity)
        rb.linearVelocity = new Vector3(targetVelocity.x, rb.linearVelocity.y, targetVelocity.z);

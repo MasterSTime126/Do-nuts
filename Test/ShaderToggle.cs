@@ -12,6 +12,8 @@ public class ShaderToggle : MonoBehaviour
     private int _dissolveAmount = Shader.PropertyToID("_Dissolve");
     private int _vertical = Shader.PropertyToID("_Vertical");
 
+    [SerializeField] bool useDissolve = false;
+
     void Start()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
@@ -20,7 +22,7 @@ public class ShaderToggle : MonoBehaviour
         for (int i = 0; i < materials.Length; i++)
         {
             materials[i] = spriteRenderer.materials[i];
-            Debug.Log("Material " + i + ": " + materials[i].name);
+            //Debug.Log("Material " + i + ": " + materials[i].name);
         }
 
         StartCoroutine(Starter());
@@ -28,13 +30,13 @@ public class ShaderToggle : MonoBehaviour
 
     IEnumerator Starter()
     {
-        yield return StartCoroutine(Appear(false, true));
+        yield return StartCoroutine(Appear(!useDissolve, useDissolve));
         //yield return StartCoroutine(Disappear(false, true));
         //yield return StartCoroutine(Appear(true, false));
         //yield return StartCoroutine(Disappear(true, false));
     }
 
-    IEnumerator Appear(bool useDissolve, bool useVertical)
+    public IEnumerator Appear(bool useDissolve, bool useVertical)
     {
         if(useDissolve)
             materials[0].SetFloat(_vertical, -2f);
@@ -64,7 +66,7 @@ public class ShaderToggle : MonoBehaviour
         materials[0].SetFloat(_vertical, 0f);
     }
 
-    IEnumerator Disappear(bool useDissolve, bool useVertical)
+    public IEnumerator Disappear(bool useDissolve, bool useVertical)
     {
         if(useDissolve)
             materials[0].SetFloat(_vertical, -2f);
