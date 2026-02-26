@@ -7820,38 +7820,38 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spriteRenderer: {fileID: 649997854}
   useTransitionAnimation: 1
-  happinessIdle: {fileID: -1645575923117008909, guid: 91be25ed555145dbeb06e4a00aacccdc, type: 3}
+  happinessIdle: {fileID: 21300000, guid: 46d56754f982ef97696194b621040185, type: 3}
   happinessWalk:
-  - {fileID: 577056733208863783, guid: ccdd0da12e015ba06bbf905c5bb459a7, type: 3}
-  - {fileID: 677888356546962643, guid: 697c736e2b9e7a44b9a7dfec2d845ee1, type: 3}
-  sadnessIdle: {fileID: -5533918241339947369, guid: 32aff848a59ac6999976850e8f82a6b4, type: 3}
+  - {fileID: 21300000, guid: 90baa7fa9a4d84720b9849400694e5ed, type: 3}
+  - {fileID: 21300000, guid: 1439604a4f6fa85ccba37f56bea6ec94, type: 3}
+  sadnessIdle: {fileID: 21300000, guid: 80462c9d2941d6b4993e597927a563da, type: 3}
   sadnessWalk:
-  - {fileID: 1734535595162663317, guid: 471765d3aa8533ab3876168141f4aa4d, type: 3}
-  - {fileID: 1326151635023838213, guid: 42959fa59dcaf2a70a3836967f3b73fe, type: 3}
-  fearIdle: {fileID: 7699960692209017018, guid: 45d9fc0be64d51c4a96125f602ed5657, type: 3}
+  - {fileID: 21300000, guid: 8f98e176d08c4f441a4634c71d449b36, type: 3}
+  - {fileID: 21300000, guid: 7105b70f5ba5d221db05e2575cd081cd, type: 3}
+  fearIdle: {fileID: 21300000, guid: 81c9034cc9928fdf2a482860c91d6e50, type: 3}
   fearWalk:
-  - {fileID: 4923521565988921581, guid: 1df04b5585229d389980d033489b5d1f, type: 3}
-  - {fileID: 4696788872638452607, guid: 8eaeae40fc3cb6e4b914b7519a3ce394, type: 3}
-  angerIdle: {fileID: -4681511198894069979, guid: 5e8cc89be1dc8db59b4e3c4af1abc0ff, type: 3}
+  - {fileID: 21300000, guid: 2b58c1f709faed1228ca3c7b3361f4be, type: 3}
+  - {fileID: 21300000, guid: dff25e07e5ca394a2b3ae9e0c92d3fd9, type: 3}
+  angerIdle: {fileID: 21300000, guid: aa0203a912dcf98fd80abfedb5d6fe3d, type: 3}
   angerWalk:
-  - {fileID: -7586599735590855539, guid: 8d5aad1add287bf21b4da047ffc8f8b5, type: 3}
-  - {fileID: 4042768624146582262, guid: 3361f0f2568dd3cbf8834be92d7bb79b, type: 3}
-  - {fileID: -1289285737900035811, guid: 040929ee7038e3cbf84a17384d650d7e, type: 3}
-  disgustIdle: {fileID: 2197910327824358573, guid: bfe88102bd7053db8acde6608b2482c9, type: 3}
+  - {fileID: 21300000, guid: cf231c8c008113ec3863dcdc4df10e56, type: 3}
+  - {fileID: 21300000, guid: 6479774a0da60c2e5a12d164d8886632, type: 3}
+  - {fileID: 21300000, guid: 006e3bb3c4d94cad8bb9f757af75a426, type: 3}
+  disgustIdle: {fileID: 21300000, guid: 04e91a7211babf10cb570a18d2cda276, type: 3}
   disgustWalk:
-  - {fileID: 4824423746800417835, guid: a760b4cf5b7f7d7ee968fcd0d74af490, type: 3}
-  - {fileID: 5374419613049951221, guid: 8fb039da0ab21a5fcbab924880a8130f, type: 3}
-  - {fileID: 707157100340229462, guid: d3398c5cf0c58c9309dfdf0fd0840ec8, type: 3}
+  - {fileID: 21300000, guid: 3b55887e759039868b821137936e9c0e, type: 3}
+  - {fileID: 21300000, guid: c64294dee233f0b5497bf32594536ba4, type: 3}
+  - {fileID: 21300000, guid: a1862c6b524107c19867d4d676abd3cd, type: 3}
   attackSprites:
-  - {fileID: -4958763758357168203, guid: c47e79f7305c9d87bb336dd0df19c2f5, type: 3}
-  - {fileID: -7947840602264261891, guid: 3d0b14f95ef8609259a21f59fa2e96ea, type: 3}
-  - {fileID: -2393418029714607723, guid: 9981c3c3c51c85120a2e1ed39e30c7cd, type: 3}
-  - {fileID: -2374744461532967736, guid: f20385009534de7e6af4d25d12d7279e, type: 3}
+  - {fileID: 21300000, guid: 55e3d66c925fdb83d9f0291b21b67518, type: 3}
+  - {fileID: 21300000, guid: bf2776e23aed4a9fdaecd68d9c12852e, type: 3}
+  - {fileID: 21300000, guid: 3d76db7f14ee3382c81599e9fbd7cedb, type: 3}
+  - {fileID: 21300000, guid: 7a09875f1428d6ec7a8ff22dc3a736a8, type: 3}
   cleanSprites:
-  - {fileID: -5946902365305969737, guid: 09863a87083bdbd638da24d111111a3c, type: 3}
-  - {fileID: -9083729477510831698, guid: d160520aa2084802c8f12a8209aa043e, type: 3}
-  - {fileID: -5718501249439950844, guid: b0d4ddb6a851c5f629d3e375f490cc1b, type: 3}
-  - {fileID: 7000921074888324095, guid: 86fb8f038bc078fb7b067f917f490a8c, type: 3}
+  - {fileID: 21300000, guid: e52194541127065bdaed8cf43c10f90e, type: 3}
+  - {fileID: 21300000, guid: 732187ee59adccccf8552e3678835089, type: 3}
+  - {fileID: 21300000, guid: 24b9a1978797755e5a4aea3e534d172d, type: 3}
+  - {fileID: 21300000, guid: f7e3fabb1ccd2791885f534b8abc6152, type: 3}
   walkSpeed: 0.15
   attackSpeed: 0.1
   cleanSpeed: 0.3
@@ -19549,7 +19549,6 @@ MonoBehaviour:
   - {x: 150, y: 0.73, z: -150}
   - {x: 0, y: 0.73, z: -300}
   endSceneName: The End
-  loseSceneName: The End
 --- !u!4 &1582273173
 Transform:
   m_ObjectHideFlags: 0
@@ -19935,7 +19934,7 @@ MonoBehaviour:
   displayDuration: 3
   fadeDuration: 1
   fontSize: 36
-  textColor: {r: 0.74849313, g: 0.74849313, b: 0.74849313, a: 1}
+  textColor: {r: 0.48796695, g: 0.45687348, b: 1, a: 1}
   anchorPosition: {x: -20, y: 150}
 --- !u!4 &1601507994
 Transform:
@@ -25150,7 +25149,11 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Eat 10 Donuts
+  m_text: 'WASD to move, F to dash
+
+    eat 10 donuts
+
+'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 78983e8c2459a4341836038b610d0d68, type: 2}
   m_sharedMaterial: {fileID: 2637885178885024828, guid: 78983e8c2459a4341836038b610d0d68, type: 2}

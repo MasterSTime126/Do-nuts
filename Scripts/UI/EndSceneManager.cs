@@ -1,197 +1,100 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 using TMPro;
 
 public class EndSceneManager : MonoBehaviour
 {
-    [Header("UI Elements")]
+    [Header("UI References")]
     [SerializeField] private TMP_Text titleText;
-    [SerializeField] private TMP_Text timeText;
+    [SerializeField] private TMP_Text statsText;
     [SerializeField] private TMP_Text bestTimeText;
-    [SerializeField] private TMP_Text newRecordText;
-    [SerializeField] private Button playAgainButton;
-    [SerializeField] private Button mainMenuButton;
 
-    [Header("Scene Names")]
-    [SerializeField] private string gameSceneName = "GameScene";
+    [Header("Text Settings")]
+    [SerializeField] private string winTitle = "Congratulations!";
+    [SerializeField] private string loseTitle = "Game Over";
+    [SerializeField] private Color winColor = Color.yellow;
+    [SerializeField] private Color loseColor = Color.red;
+
+    [Header("Scene Navigation")]
     [SerializeField] private string mainMenuSceneName = "MainMenu";
 
-    [Header("Animation")]
-    [SerializeField] private float textFadeInDuration = 1f;
-    [SerializeField] private float delayBetweenElements = 0.5f;
+    // Static data passed from MaskManager
+    private static bool isWin = false;
+    private static MaskManager.MaskState deathMask = MaskManager.MaskState.Happiness;
+    private static float playTime = 0f;
+
+    public static void SetEndData(bool won, MaskManager.MaskState mask, float time)
+    {
+        isWin = won;
+        deathMask = mask;
+        playTime = time;
+
+        Debug.Log($"[EndSceneManager] Data set: isWin={won}, mask={mask}, time={time:F2}s");
+    }
 
     private void Start()
     {
-        // Get times from MaskManager
-        float lastTime = MaskManager.GetLastTime();
-        float bestTime = MaskManager.GetBestTime();
-        bool isNewRecord = Mathf.Approximately(lastTime, bestTime) && lastTime > 0;
-
-        // Try to find WONTIME object in scene if timeText not assigned
-        if (timeText == null)
-        {
-            GameObject winTimeObj = GameObject.Find("WONTIME");
-            if (winTimeObj != null)
-            {
-                timeText = winTimeObj.GetComponent<TMP_Text>();
-                Debug.Log("EndSceneManager: Found WONTIME object");
-            }
-            else{
-                winTimeObj = GameObject.FindWithTag("WONTIME");
-                if (winTimeObj != null)
-                {
-                    timeText = winTimeObj.GetComponent<TMP_Text>();
-                    Debug.Log("EndSceneManager: Found WONTIME object by tag");
-                }
-            }
-        }
-
-        // Set up UI
-        SetupUI(lastTime, bestTime, isNewRecord);
-
-        // Set up buttons
-        if (playAgainButton != null)
-        {
-            playAgainButton.onClick.AddListener(PlayAgain);
-        }
-
-        if (mainMenuButton != null)
-        {
-            mainMenuButton.onClick.AddListener(GoToMainMenu);
-        }
-
-        // Start animation
-        StartCoroutine(AnimateUI());
+        UpdateUI();
     }
 
-    private void SetupUI(float lastTime, float bestTime, bool isNewRecord)
+    private void UpdateUI()
     {
+        // Set title text
         if (titleText != null)
         {
-            titleText.text = "Congratulations!";
+            titleText.text = isWin ? winTitle : loseTitle;
+            titleText.color = isWin ? winColor : loseColor;
         }
 
-        if (timeText != null)
+        // Set stats text
+        if (statsText != null)
         {
-            timeText.text = $"Your Time: {FormatTime(lastTime)}";
-        }
-
-        if (bestTimeText != null)
-        {
-            bestTimeText.text = $"Best Time: {FormatTime(bestTime)}";
-        }
-
-        if (newRecordText != null)
-        {
-            newRecordText.gameObject.SetActive(isNewRecord);
-            if (isNewRecord)
+            if (isWin)
             {
-                newRecordText.text = "NEW RECORD!";
+                int minutes = Mathf.FloorToInt(playTime / 60f);
+                int seconds = Mathf.FloorToInt(playTime % 60f);
+                statsText.text = $"Time: {minutes:00}:{seconds:00}";
+            }
+            else
+            {
+                statsText.text = $"Defeated at: {deathMask} level\nTime: {FormatTime(playTime)}";
             }
         }
-    }
 
-    private string FormatTime(float timeInSeconds)
-    {
-        int minutes = Mathf.FloorToInt(timeInSeconds / 60f);
-        int seconds = Mathf.FloorToInt(timeInSeconds % 60f);
-        int milliseconds = Mathf.FloorToInt((timeInSeconds * 100f) % 100f);
-
-        if (minutes > 0)
+        // Set best time text
+        if (bestTimeText != null)
         {
-            return $"{minutes:00}:{seconds:00}.{milliseconds:00}";
-        }
-        else
-        {
-            return $"{seconds:00}.{milliseconds:00}";
-        }
-    }
-
-    private System.Collections.IEnumerator AnimateUI()
-    {
-        // Hide all elements initially
-        SetAlpha(titleText, 0f);
-        SetAlpha(timeText, 0f);
-        SetAlpha(bestTimeText, 0f);
-        SetAlpha(newRecordText, 0f);
-
-        if (playAgainButton != null) playAgainButton.gameObject.SetActive(false);
-        if (mainMenuButton != null) mainMenuButton.gameObject.SetActive(false);
-
-        yield return new WaitForSeconds(0.5f);
-
-        // Fade in title
-        yield return StartCoroutine(FadeInText(titleText));
-        yield return new WaitForSeconds(delayBetweenElements);
-
-        // Fade in time
-        yield return StartCoroutine(FadeInText(timeText));
-        yield return new WaitForSeconds(delayBetweenElements);
-
-        // Fade in best time
-        yield return StartCoroutine(FadeInText(bestTimeText));
-        yield return new WaitForSeconds(delayBetweenElements);
-
-        // Fade in new record (if applicable)
-        if (newRecordText != null && newRecordText.gameObject.activeSelf)
-        {
-            yield return StartCoroutine(FadeInText(newRecordText));
-            yield return new WaitForSeconds(delayBetweenElements);
+            float bestTime = MaskManager.GetBestTime();
+            if (bestTime > 0)
+            {
+                bestTimeText.text = $"Best Time: {FormatTime(bestTime)}";
+            }
+            else
+            {
+                bestTimeText.text = "Best Time: --:--";
+            }
         }
 
-        // Show buttons
-        if (playAgainButton != null) playAgainButton.gameObject.SetActive(true);
-        if (mainMenuButton != null) mainMenuButton.gameObject.SetActive(true);
+        Debug.Log($"[EndSceneManager] UI Updated - Win: {isWin}, Time: {playTime:F2}s");
     }
 
-    private System.Collections.IEnumerator FadeInText(TMP_Text text)
+    private string FormatTime(float time)
     {
-        if (text == null) yield break;
-
-        float elapsed = 0f;
-        while (elapsed < textFadeInDuration)
-        {
-            elapsed += Time.deltaTime;
-            float alpha = Mathf.Clamp01(elapsed / textFadeInDuration);
-            SetAlpha(text, alpha);
-            yield return null;
-        }
-        SetAlpha(text, 1f);
+        int minutes = Mathf.FloorToInt(time / 60f);
+        int seconds = Mathf.FloorToInt(time % 60f);
+        return $"{minutes:00}:{seconds:00}";
     }
 
-    private void SetAlpha(TMP_Text text, float alpha)
+    public void ReturnToMainMenu()
     {
-        if (text == null) return;
-        Color color = text.color;
-        color.a = alpha;
-        text.color = color;
-    }
-
-    public void PlayAgain()
-    {
-        Debug.Log("Playing again...");
-        SceneManager.LoadScene(gameSceneName);
-    }
-
-    public void GoToMainMenu()
-    {
-        Debug.Log("Going to main menu...");
+        Debug.Log("[EndSceneManager] Returning to main menu");
         SceneManager.LoadScene(mainMenuSceneName);
     }
 
-    private void Update()
+    public void RestartGame()
     {
-        // Quick restart with Enter or Space
-        if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.Space))
-        {
-            PlayAgain();
-        }
-
-        // Quick exit with Escape
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            GoToMainMenu();
-        }
+        Debug.Log("[EndSceneManager] Restarting game");
+        // Load the game scene (assumes it's scene index 1 or you can set a specific name)
+        SceneManager.LoadScene(1);
     }
 }

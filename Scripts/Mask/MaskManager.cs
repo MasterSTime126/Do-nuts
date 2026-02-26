@@ -39,8 +39,7 @@ public class MaskManager : MonoBehaviour
 
     [SerializeField] private Vector3[] maskSpawnPositions = new Vector3[5];
     [SerializeField] private Vector3[] playerSpawnPositions = new Vector3[5];
-    [SerializeField] private string endSceneName = "EndScene";
-    [SerializeField] private string loseSceneName = "LoseScene";
+    [SerializeField] private string endSceneName = "The End";
 
     [Header("Level Requirements")]
     private const int HAPPINESS_DONUTS_REQUIRED = 10;
@@ -314,7 +313,7 @@ public class MaskManager : MonoBehaviour
         switch (currentMask)
         {
             case MaskState.Happiness:
-                MissionText.text = $"Eat {HAPPINESS_DONUTS_REQUIRED} Donuts";
+                MissionText.text = $"WASD to move; F to dash;\nEat {HAPPINESS_DONUTS_REQUIRED} Donuts";
                 break;
             case MaskState.Sadness:
                 MissionText.text = $"Survive for {SADNESS_SURVIVAL_TIME} Seconds";
@@ -354,6 +353,10 @@ public class MaskManager : MonoBehaviour
     private System.Collections.IEnumerator LoadEndScene()
     {
         Debug.Log($"[MaskManager] Loading win scene: {endSceneName}");
+        
+        // Store win data
+        EndSceneManager.SetEndData(true, currentMask, totalPlayTime);
+        
         yield return new WaitForSeconds(0.5f);
         
         if (!string.IsNullOrEmpty(endSceneName) && Application.CanStreamedLevelBeLoaded(endSceneName))
@@ -388,23 +391,27 @@ public class MaskManager : MonoBehaviour
     private void HandlePlayerDeath()
     {
         Debug.Log("[MaskManager] Player died!");
+        ClearLastTimeOnLoss();  // Set lastTime to 0 on loss
         OnGameLost?.Invoke();
-        LoseSceneManager.SetDeathData(currentMask, totalPlayTime);
         StartCoroutine(LoadLoseScene());
     }
 
     private System.Collections.IEnumerator LoadLoseScene()
     {
-        Debug.Log($"[MaskManager] Loading lose scene: {loseSceneName}");
+        Debug.Log($"[MaskManager] Loading end scene (LOSE): {endSceneName}");
+        
+        // Store lose data - set lastTime to 0 for loss
+        EndSceneManager.SetEndData(false, currentMask, totalPlayTime);
+        
         yield return new WaitForSeconds(0.5f);
         
-        if (!string.IsNullOrEmpty(loseSceneName) && Application.CanStreamedLevelBeLoaded(loseSceneName))
+        if (!string.IsNullOrEmpty(endSceneName) && Application.CanStreamedLevelBeLoaded(endSceneName))
         {
-            SceneManager.LoadScene(loseSceneName);
+            SceneManager.LoadScene(endSceneName);
         }
         else
         {
-            Debug.LogWarning("[MaskManager] Lose scene not found, resetting level");
+            Debug.LogWarning("[MaskManager] End scene not found, resetting level");
             currentHP = maxHP * 0.25f;
             ResetLevelProgress();
             OnHPChanged?.Invoke(currentHP, maxHP);
@@ -462,6 +469,15 @@ public class MaskManager : MonoBehaviour
         }
 
         PlayerPrefs.Save();
+    }
+
+    private void ClearLastTimeOnLoss()
+    {
+        // Set last time to 0 on loss (don't count failed runs)
+        lastTime = 0f;
+        PlayerPrefs.SetFloat("LastTime", 0f);
+        PlayerPrefs.Save();
+        Debug.Log("[MaskManager] Last time cleared (loss)");
     }
 
     public static float GetBestTime() => bestTime;

@@ -30,6 +30,31 @@ public class MaskPickup : MonoBehaviour
 
     private void Start()
     {
+        // Get the SpriteRenderer (could be on the same object or a child)
+        var srTemp = GetComponent<SpriteRenderer>() ?? GetComponentInChildren<SpriteRenderer>();
+        if (srTemp != null)
+        {
+            var mat = srTemp.material; // creates an instance if using a shared material
+            if (mat != null)
+            {
+                Debug.Log("MaskPickup shader: " + (mat.shader != null ? mat.shader.name : "null"));
+
+                // Example property changes - adjust property names/values to match your shader
+                if (mat.HasProperty("_OutlineColor"))
+                    mat.SetColor("_OutlineColor", Color.blue); // change tint
+
+                if (mat.HasProperty("_SpiralStrength")) // check for main texture scale/offset prop group
+                {
+                    mat.SetFloat("_SpiralStrength", 1f); // example of changing a custom shader property
+                }
+
+                if (mat.HasProperty("_DissolvePattern"))
+                    mat.SetFloat("_DissolvePattern", 15f);
+
+                //GetComponent<ShaderToggle>()?.Appear(false, true); // Ensure shader is toggled on
+            }
+
+        }
         startPosition = transform.position;
         maskManager = MaskManager.Instance;
         spriteRenderer = GetComponent<SpriteRenderer>();

@@ -13,6 +13,7 @@ public class DonutAnimator : MonoBehaviour
     [SerializeField] private Sprite fearIdle;
 
     [Header("Anger Sprites")]
+    
     [SerializeField] private Sprite[] angerWalk = new Sprite[2];
     [SerializeField] private Sprite[] angerAttack = new Sprite[3];
 
